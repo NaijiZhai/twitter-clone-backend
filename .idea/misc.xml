@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Black">
+    <option name="sdkName" value="Remote Python 3.6.9 Vagrant 虚拟机，处于 E:\BaiduNetdiskDownload\jz Twitter 后端系统 - Python 项目实战 【新版】- sz - c\课件资料\课件资料\源码\django-twitter-official-1-initial-vagrant (/usr/bin/python3)" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider"><![CDATA[{
+  "isMigrated": true
+}]]></component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.10.12 Vagrant 虚拟机，处于 E:\BaiduNetdiskDownload\jz Twitter 后端系统 - Python 项目实战 【新版】- sz - c\课件资料\课件资料\源码\django-twitter-official-1-initial-vagrant (/usr/bin/python3)" project-jdk-type="Python SDK" />
+</project>
