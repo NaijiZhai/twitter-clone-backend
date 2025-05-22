@@ -20,9 +20,11 @@ from django.urls import include, path
 from rest_framework import routers
 from accounts.api import views
 from accounts.api.views import AccountViewSet
+from tweets.api.views import TweetViewSet
 
 router = routers.DefaultRouter()
 router.register(r'api/accounts', AccountViewSet, basename='accounts')
+router.register(r'api/tweets', TweetViewSet, basename='tweets')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

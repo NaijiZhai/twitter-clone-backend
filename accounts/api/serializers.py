@@ -3,6 +3,10 @@ import email
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 
+class UserSerializerForTweetResponse(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username')
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
