@@ -27,17 +27,17 @@ class TweetApiTests(TestCase):
         ]
 
     def test_list_api(self):
-        # 必须带 user_id
+
         response = self.anonymous_client.get(TWEET_LIST_API)
         self.assertEqual(response.status_code, 400)
 
-        # 正常 request
+
         response = self.anonymous_client.get(TWEET_LIST_API, {'user_id': self.user1.id})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['tweets']), 3)
         response = self.anonymous_client.get(TWEET_LIST_API, {'user_id': self.user2.id})
         self.assertEqual(len(response.data['tweets']), 2)
-        # 检测排序是按照新创建的在前面的顺序来的
+        # order by -created_at
         self.assertEqual(response.data['tweets'][0]['id'], self.tweets2[1].id)
         self.assertEqual(response.data['tweets'][1]['id'], self.tweets2[0].id)
 
@@ -46,6 +46,8 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
         response = self.user1_client.post(TWEET_CREATE_API)
+        self.assertEqual(response.status_code, 400)
+        response = self.user1_client.post(TWEET_CREATE_API,{})
         self.assertEqual(response.status_code, 400)
         response = self.user1_client.post(TWEET_CREATE_API, {'content': '1'})
         self.assertEqual(response.status_code, 400)
