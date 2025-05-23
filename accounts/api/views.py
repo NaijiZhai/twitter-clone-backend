@@ -8,6 +8,7 @@ from django.contrib.auth import (logout as django_logout,
 
 from accounts.api.serializers import UserSerializer, LoginSerializer,  SignupSerializer
 from rest_framework.decorators import action
+from rest_framework.request import Request
 
 
 class AccountViewSet(viewsets.ViewSet):
@@ -15,6 +16,9 @@ class AccountViewSet(viewsets.ViewSet):
 
     @action(detail = False, methods = ['get'])
     def login_status(self, request):
+        # print("user：", request.user)
+        # print("logged_in：", request.user.is_authenticated)
+        # print("auth：", request.auth)
         return_data = {'has_logged_in': request.user.is_authenticated}
         if request.user.is_authenticated:
             return_data['user'] = UserSerializer(instance = request.user).data
@@ -43,7 +47,7 @@ class AccountViewSet(viewsets.ViewSet):
                         "User does not exist."
                     ]
                 }
-            })
+            },status = 400)
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
         user = django_authenticate(username = username, password = password)
@@ -69,6 +73,8 @@ class AccountViewSet(viewsets.ViewSet):
         django_login(request, user)
         return Response({'success': True,
                          'User': UserSerializer(user).data}, status=201)
+
+
 
 
 
