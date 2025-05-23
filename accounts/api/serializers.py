@@ -15,7 +15,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(allow_blank = False, required=True)
     password = serializers.CharField(allow_blank = False, required=True)
-    email = serializers.EmailField(allow_blank = True, required=False)
+    # email = serializers.EmailField(allow_blank = True, required=False)
 
 
 class SignupSerializer(serializers.ModelSerializer):

@@ -1,6 +1,8 @@
+from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions, serializers
 from rest_framework.response import Response
 
+from accounts.api.serializers import UserSerializer, UserSerializerForTweetResponse
 from tweets.api.serializers import TweetSerializerForCreate, TweetSerializer
 from tweets.models import Tweet
 
@@ -34,6 +36,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         return Response({
             'success': True,
             'data': TweetSerializer(tweet).data,
+            'user' : UserSerializerForTweetResponse(User.objects.get(id = tweet.user.id)).data,
         }, status = 201)
 
 

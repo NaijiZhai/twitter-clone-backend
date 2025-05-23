@@ -11,7 +11,7 @@ from rest_framework.decorators import action
 
 
 class AccountViewSet(viewsets.ViewSet):
-    serializer_class = SignupSerializer
+    serializer_class = LoginSerializer
 
     @action(detail = False, methods = ['get'])
     def login_status(self, request):
@@ -54,7 +54,7 @@ class AccountViewSet(viewsets.ViewSet):
             },status=status.HTTP_400_BAD_REQUEST)
         django_login(request, user)
         return Response({'success': True,
-                         'User': UserSerializer(user).data})
+                         'user': UserSerializer(user).data})
     @action(detail = False, methods = ['post'])
     def signup(self, request):
 
@@ -68,7 +68,7 @@ class AccountViewSet(viewsets.ViewSet):
         user = serializer.save()
         django_login(request, user)
         return Response({'success': True,
-                         'User': UserSerializer(user).data}, status=201)
+                         'user': UserSerializer(user).data}, status=201)
 
 
 
