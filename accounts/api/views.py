@@ -43,7 +43,7 @@ class AccountViewSet(viewsets.ViewSet):
                         "User does not exist."
                     ]
                 }
-            })
+            }, status = 400)
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
         user = django_authenticate(username = username, password = password)

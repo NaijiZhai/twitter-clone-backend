@@ -46,7 +46,7 @@ class AccountApiTests(TestCase):
 
         #wrong username
         response = self.client.post(LOGIN_URL, {
-            'username': self.user.username + str('1'),
+            'username': self.user.username + str('suffix'),
             'password': 'correct password',
         })
         self.assertEqual(response.status_code, 400)
