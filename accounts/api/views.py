@@ -55,7 +55,7 @@ class AccountViewSet(viewsets.ViewSet):
         django_login(request, user)
         return Response({'success': True,
                          'user': UserSerializer(user).data})
-    @action(detail = False, methods = ['post'])
+    @action(detail = False, methods = ['post'], serializer_class = SignupSerializer)
     def signup(self, request):
 
         serializer = SignupSerializer(data = request.data)
