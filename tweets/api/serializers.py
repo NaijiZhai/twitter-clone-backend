@@ -1,3 +1,4 @@
+import openai
 from rest_framework import serializers
 from openai import OpenAI
 
@@ -5,13 +6,34 @@ from accounts.api.serializers import UserSerializer, UserSerializerForTweetRespo
 from tweets.models import Tweet
 
 
-class TweetCreateSerializer(serializers.ModelSerializer):
+class TweetSerializerForCreate(serializers.ModelSerializer):
+    content = serializers.CharField(max_length=140, min_length=6)
+
     class Meta:
         model = Tweet
+        fields = ('content',)
+
+    def validate(self, data):
+        content = data['content']
+        response = OpenAI(api_key = ('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
+                                     'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j380bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
+            input=content,
+        )
+        if response.results[0].flagged:
+            raise serializers.ValidationError('Harmful content！')
+        return data
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        content = validated_data['content']
+        tweet = Tweet.objects.create(user=user, content=content)
+        return tweet
+
 
 
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializerForTweetResponse(read_only=True)
+
     class Meta:
         model = Tweet
         fields = ('id', 'user', 'content', 'created_at')
