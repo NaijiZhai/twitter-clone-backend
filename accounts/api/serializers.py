@@ -12,6 +12,11 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email']
+
+class UserSerializerForFriendship(UserSerializerForTweetResponse):
+    pass
+
+
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(allow_blank = False, required=True)
     password = serializers.CharField(allow_blank = False, required=True)
