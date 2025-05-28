@@ -11,7 +11,7 @@ class FollowerSerializer(serializers.Serializer):
 
     class Meta:
         model = Friendship
-        fields  = ('user', 'created_at')
+        fields = ('user', 'created_at')
 
 
 class FollowingSerializer(serializers.Serializer):
@@ -20,9 +20,26 @@ class FollowingSerializer(serializers.Serializer):
 
     class Meta:
         model = Friendship
-        fields  = ('user', 'created_at')
+        fields = ('user', 'created_at')
 
 
+class FriendSerializerForCreate(serializers.Serializer):
+    from_user_id = serializers.IntegerField()
+    to_user_id = serializers.IntegerField()
+    created_at = serializers.DateTimeField(read_only=True)
 
+    def validate(self, data):
+        if data['from_user_id'] == data['to_user_id']:
+            raise serializers.ValidationError('You can\'t follow yourself')
+        if not User.objects.filter(id=data['from_user_id']).exists():
+            raise serializers.ValidationError('From user does not exist')
+        if not User.objects.filter(id=data['to_user_id']).exists():
+            raise serializers.ValidationError('To user does not exist')
+        return data
+
+    def create(self, validated_data):
+        from_user = User.objects.get(id=validated_data['from_user_id'])
+        to_user = User.objects.get(id=validated_data['to_user_id'])
+        return Friendship.objects.create(from_user=from_user, to_user=to_user)
 
 
