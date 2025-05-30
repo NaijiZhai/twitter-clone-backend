@@ -31,13 +31,13 @@ class TweetViewSet(viewsets.GenericViewSet):
             return Response({
                 'success': False,
                 'error': serializer.errors,
-
             }, status=400)
         tweet = serializer.save()
-        NewsFeedService.fanout_to_followers(tweet = tweet)
+        NewsFeedService.fanout_to_followers( tweet)
         return Response({
             'success': True,
             'data': TweetSerializer(tweet).data,
+            'id': tweet.id,
             'user' : UserSerializerForTweetResponse(User.objects.get(id = tweet.user.id)).data,
         }, status = 201)
 
