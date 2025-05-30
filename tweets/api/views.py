@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from accounts.api.serializers import UserSerializer, UserSerializerForTweetResponse
 from tweets.api.serializers import TweetSerializerForCreate, TweetSerializer
 from tweets.models import Tweet
+from newsfeeds.services import NewsFeedService
 
 
 
@@ -33,6 +34,7 @@ class TweetViewSet(viewsets.GenericViewSet):
 
             }, status=400)
         tweet = serializer.save()
+        NewsFeedService.fanout_to_followers(tweet = tweet)
         return Response({
             'success': True,
             'data': TweetSerializer(tweet).data,
