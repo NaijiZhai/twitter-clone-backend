@@ -73,4 +73,4 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                                                   to_user_id=query_params['to_user_id']).delete()
         if not is_deleted:
             return Response({'message': 'friendship does not exit'}, status=400)
-        return Response({'success': True, 'delete': is_deleted}, status=204)
+        return Response({'success': True, 'delete': is_deleted}, status=204)b
