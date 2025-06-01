@@ -33,7 +33,7 @@ class TweetViewSet(viewsets.GenericViewSet):
                 'error': serializer.errors,
             }, status=400)
         tweet = serializer.save()
-        NewsFeedService.fanout_to_followers( tweet)
+        NewsFeedService.fanout_to_followers(tweet)
         return Response({
             'success': True,
             'data': TweetSerializer(tweet).data,

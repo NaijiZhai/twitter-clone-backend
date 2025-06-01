@@ -21,7 +21,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             return [IsAuthenticated()]
         return [AllowAny()]
 
-
     def get_queryset(self):
         params = self.request.query_params
         if 'from_user_id' in params and 'to_user_id' in params:
@@ -64,13 +63,14 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response({'success': True, 'duplicate': False, 'data': serializer.data}, status=201)
 
-    def destroy(self, request, pk):
-        try:
-            from_user_id, to_user_id = map(int, pk.split('_'))
-        except (ValueError, TypeError):
-            return Response({'detail': 'pk should be like from_to ，e.g. 3_1'}, status=400)
-        is_deleted, _ = Friendship.objects.filter(from_user_id=from_user_id,to_user_id=to_user_id).delete()
+    @action(methods=['delete'], detail=False, url_path='remove')
+    def delete(self, request, **kwargs):
+        query_params = request.query_params
+        print(query_params)
+        if not ('to_user_id' in query_params and 'from_user_id' in query_params):
+            return Response('to_user_id and from_user_id are both needed', status=400)
+        is_deleted, _ = Friendship.objects.filter(from_user_id=query_params['from_user_id'],
+                                                  to_user_id=query_params['to_user_id']).delete()
         if not is_deleted:
             return Response({'message': 'friendship does not exit'}, status=400)
-        return Response({'success': True, 'delete': is_deleted},status=204)
-
+        return Response({'success': True, 'delete': is_deleted}, status=204)
