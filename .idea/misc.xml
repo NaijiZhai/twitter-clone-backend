@@ -5,4 +5,7 @@
   </component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.10.12 Vagrant 虚拟机，处于 C:\Users\1\Desktop\django-twitter-official-1-initial-vagrant (/usr/bin/python3)" project-jdk-type="Python SDK" />
+  <component name="PythonCompatibilityInspectionAdvertiser">
+    <option name="version" value="3" />
+  </component>
 </project>
