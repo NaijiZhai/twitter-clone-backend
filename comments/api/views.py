@@ -40,3 +40,4 @@ class CommentViewSet(viewsets.ModelViewSet):
                 CommentSerializer(comment).data,
             status=201
         )
+

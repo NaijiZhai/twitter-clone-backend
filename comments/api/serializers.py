@@ -19,7 +19,7 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('tweet_id', 'user_id','content')
+        fields = ('user_id', 'tweet_id','content')
 
     def validate(self, data):
         if not Tweet.objects.filter(id = data.get('tweet_id')):
@@ -27,7 +27,9 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        print(validated_data)
         return Comment.objects.create(**validated_data)
+
 
 
 
