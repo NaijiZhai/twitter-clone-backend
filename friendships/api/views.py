@@ -1,11 +1,9 @@
-from httplib2.auth import params
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
 from friendships.api.serializers import FollowerSerializer, FollowingSerializer, FriendSerializerForCreate
-from rest_framework.request import Request
-from accounts.api.serializers import UserSerializerForTweetResponse
 from friendships.models import Friendship
 from utils.auth import CsrfExemptSessionAuthentication
 

@@ -3,18 +3,27 @@ from rest_framework import serializers
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
 from tweets.api.serializers import TweetSerializer
+from tweets.models import Tweet
 
 
-class CommentSerializerForCreate(serializers.Serializer):
-    user = UserSerializer(read_only=True)
-    tweet = TweetSerializer(read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
-    content = serializers.CharField(max_length=140)
-    updated_at = serializers.DateTimeField(read_only=True)
+class CommentSerializer(serializers.ModelSerializer):
+    user= UserSerializer()
+    tweet = TweetSerializer()
+    class Meta:
+        model = Comment
+        fields = 'id', 'tweet', 'user', 'content', 'created_at'
+
+class CommentSerializerForCreate(serializers.ModelSerializer):
+    tweet_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+
+    class Meta:
+        model = Comment
+        fields = ('tweet_id', 'user_id','content')
 
     def validate(self, data):
-        if not self.context['request'].user.is_authenticated():
-            raise serializers.ValidationError('You need to log in first')
+        if not Tweet.objects.filter(id = data.get('tweet_id')):
+            raise  serializers.ValidationError({'message':'tweet does not exist'})
         return data
 
     def create(self, validated_data):

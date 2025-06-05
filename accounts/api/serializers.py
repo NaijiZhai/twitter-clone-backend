@@ -11,7 +11,7 @@ class UserSerializerForTweetResponse(serializers.ModelSerializer):
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ['username', 'email', 'id']
 
 class UserSerializerForFriendship(UserSerializerForTweetResponse):
     pass

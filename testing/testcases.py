@@ -1,3 +1,4 @@
+import random
 from functools import cached_property
 
 from django.test import TestCase as DjangoTestCase
@@ -13,9 +14,11 @@ class TestCase(DjangoTestCase):
     def anonymous_client(self):
         return APIClient()
 
-    def create_user(self, username, email, password=None):
+    def create_user(self, username, email = None, password=None):
         if password is None:
             password = 'generic password'
+        if not email:
+            email = str(random.randint(0,10000)) + '@a.com'
         return User.objects.create_user(username, email, password)
 
     def create_tweet(self, user, content=None):
