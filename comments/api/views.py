@@ -3,7 +3,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from comments.api.permissions import IsOwner
-from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate
+from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate, \
+    CommentSerializerForList
 from comments.models import Comment
 
 
@@ -11,6 +12,7 @@ from comments.models import Comment
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializerForCreate
+    filterset_fields = ('tweet_id',)
 
     def get_permissions(self):
         if self.action == 'create':
@@ -21,10 +23,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         params = request.query_params
-        if 'tweet' not in params:
-            return Response({
-                'message': 'Tweet required',
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if 'tweet_id' not in params:
+            return Response({'message': 'tweet_id is needed'}, status=400)
+        comments = self.filter_queryset(self.get_queryset())
+        serializer = CommentSerializerForList(comments, many=True)
+        return Response({'comments':serializer.data}, status=200)
+
+
+
 
     def create(self, request, *args, **kwargs):
 

@@ -36,8 +36,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    #third party apps
     'rest_framework',
     "debug_toolbar",
+    'django_filters',
+    
+    #project apps
     'tweets',
     'friendships',
     'newsfeeds',
@@ -45,7 +50,8 @@ INSTALLED_APPS = [
 ]
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
 }
 
 MIDDLEWARE = [
@@ -89,7 +95,7 @@ DATABASES = {
         'HOST': '0.0.0.0',
         'PORT': '3306',
         'USER': 'root',
-        'PASSWORD': 'yourpassword',  # 这里是自己下载mysql时候输入两次的那个密码
+        'PASSWORD': 'yourpassword',
     }
 }
 
@@ -126,6 +132,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+LOGGING = {
+    'version': 1,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
