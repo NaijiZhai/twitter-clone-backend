@@ -1,8 +1,8 @@
-import openai
-from rest_framework import serializers
 from openai import OpenAI
+from rest_framework import serializers
 
-from accounts.api.serializers import UserSerializer, UserSerializerForTweetResponse
+from accounts.api.serializers import UserSerializerForTweetResponse, UserSerializer
+from comments.api.serializers import CommentSerializer
 from tweets.models import Tweet
 
 
@@ -15,8 +15,8 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
 
     def validate(self, data):
         content = data['content']
-        response = OpenAI(api_key = ('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
-                                     'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j380bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
+        response = OpenAI(api_key=('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
+                                   'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j380bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
             input=content,
         )
         if response.results[0].flagged:
@@ -30,10 +30,18 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
         return tweet
 
 
-
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializerForTweetResponse(read_only=True)
 
     class Meta:
         model = Tweet
         fields = ('id', 'user', 'content', 'created_at')
+
+
+class TweetSerializerWithComments(serializers.ModelSerializer):
+    user = UserSerializer()
+    comments = CommentSerializer(many=True, source='comment_set')
+
+    class Meta:
+        model = Tweet
+        fields = ('id', 'user', 'content', 'created_at', 'comments')

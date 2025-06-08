@@ -6,6 +6,7 @@ from comments.api.permissions import IsOwner
 from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate, \
     CommentSerializerForList
 from comments.models import Comment
+from utils.decorator import require_all_params
 
 
 # Create your views here.
@@ -21,10 +22,8 @@ class CommentViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsOwner()]
         return [AllowAny()]
 
+    @require_all_params(params=['tweet_id'])
     def list(self, request, *args, **kwargs):
-        params = request.query_params
-        if 'tweet_id' not in params:
-            return Response({'message': 'tweet_id is needed'}, status=400)
         comments = self.filter_queryset(self.get_queryset())
         serializer = CommentSerializerForList(comments, many=True)
         return Response({'comments':serializer.data}, status=200)
@@ -64,3 +63,5 @@ class CommentViewSet(viewsets.ModelViewSet):
         comment = self.get_object()
         comment.delete()
         return Response({'success': True}, status=200)
+
+

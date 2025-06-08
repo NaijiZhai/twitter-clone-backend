@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from friendships.api.serializers import FollowerSerializer, FollowingSerializer, FriendSerializerForCreate
 from friendships.models import Friendship
 from utils.auth import CsrfExemptSessionAuthentication
+from utils.decorator import require_all_params, require_any_params
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -39,9 +40,8 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             return FollowerSerializer
         return FollowingSerializer
 
+    @require_any_params(params=['from_user_id', 'to_user_id',])
     def list(self, request):
-        if not ('to_user_id' in request.query_params or 'from_user_id' in request.query_params):
-            return Response('either to_user_id or from_user_id is needed', status=400)
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         key = 'followings' if 'from_user_id' in request.query_params else 'followers'
@@ -49,9 +49,8 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             key: serializer.data,
         }, status=200)
 
+    @require_all_params(params=['from_user_id', 'to_user_id', ], request_attr='data')
     def create(self, request):
-        if not ('to_user_id' in request.data and 'from_user_id' in request.data):
-            return Response('to_user_id and from_user_id are both needed', status=400)
         if Friendship.objects.filter(from_user_id=request.data['from_user_id'],
                                      to_user_id=request.data['to_user_id']).exists():
             return Response({'success': True, 'duplicate': True}, status=200)
@@ -61,12 +60,10 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         serializer.save()
         return Response({'success': True, 'duplicate': False, 'data': serializer.data}, status=201)
 
+    @require_all_params(params=['from_user_id', 'to_user_id', ])
     @action(methods=['delete'], detail=False, url_path='remove')
     def delete(self, request, **kwargs):
         query_params = request.query_params
-        print(query_params)
-        if not ('to_user_id' in query_params and 'from_user_id' in query_params):
-            return Response('to_user_id and from_user_id are both needed', status=400)
         is_deleted, _ = Friendship.objects.filter(from_user_id=query_params['from_user_id'],
                                                   to_user_id=query_params['to_user_id']).delete()
         if not is_deleted:

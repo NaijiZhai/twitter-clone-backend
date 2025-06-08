@@ -6,7 +6,7 @@ from accounts.api.serializers import UserSerializer, UserSerializerForTweetRespo
 from tweets.api.serializers import TweetSerializerForCreate, TweetSerializer
 from tweets.models import Tweet
 from newsfeeds.services import NewsFeedService
-
+from utils.decorator import require_all_params
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -17,9 +17,8 @@ class TweetViewSet(viewsets.GenericViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    @require_all_params(params=['user_id'])
     def list(self, request):
-        if 'user_id' not in request.query_params:
-            return Response('user_id is required', status = 400)
         tweets = Tweet.objects.filter(user_id = request.query_params['user_id']).order_by('-created_at')
         serializer = TweetSerializer(tweets, many=True)
         return Response({'tweets': serializer.data}, status = 200)

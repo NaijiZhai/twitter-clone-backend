@@ -8,11 +8,10 @@ from tweets.models import Tweet
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    tweet = TweetSerializer()
 
     class Meta:
         model = Comment
-        fields = 'id', 'tweet', 'user', 'content', 'created_at'
+        fields = 'id', 'tweet_id', 'user', 'content', 'created_at'
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
