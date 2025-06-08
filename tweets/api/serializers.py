@@ -40,8 +40,17 @@ class TweetSerializer(serializers.ModelSerializer):
 
 class TweetSerializerWithComments(serializers.ModelSerializer):
     user = UserSerializer()
-    comments = CommentSerializer(many=True, source='comment_set')
+    comments = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Tweet
         fields = ('id', 'user', 'content', 'created_at', 'comments')
+
+    def get_comments(self, obj):
+        limit = self.context.get('limit', None)
+        comments = obj.comment_set.all().order_by('-created_at')
+        print(limit)
+        if limit is not None:
+            comments = comments[:limit+1]
+        return CommentSerializer(comments, many=True).data

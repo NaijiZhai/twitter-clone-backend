@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
-from tweets.api.serializers import TweetSerializer
 from tweets.models import Tweet
 
 
