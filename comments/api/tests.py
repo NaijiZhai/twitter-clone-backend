@@ -56,7 +56,7 @@ class CommentApiTests(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['id'], self.zhai.id)
-        self.assertEqual(response.data['tweet']['id'], self.tweet.id)
+        self.assertEqual(response.data['tweet_id'], self.tweet.id)
         self.assertEqual(response.data['content'], '1')
 
     def test_destroy(self):

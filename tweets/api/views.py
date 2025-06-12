@@ -41,12 +41,14 @@ class TweetViewSet(viewsets.GenericViewSet):
         }, status = 201)
 
     def retrieve(self, request, pk = None):
-        tweet = Tweet.objects.get(id = pk)
+        tweet = self.get_object()
         if not 'comment_limit' in request.query_params:
             return Response(TweetSerializerWithComments(tweet).data)
         else:
             try:
                 comment_limit = int(request.query_params['comment_limit'])
+                if comment_limit < 0:
+                    return Response({'success': False, 'error': 'comment_limit must be positive integer'}, status = 400)
             except:
                 return Response({'success': False, 'error': 'comment_limit must be integer'}, status = 400)
             return Response(TweetSerializerWithComments(tweet, context={'limit':comment_limit}).data)

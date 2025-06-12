@@ -50,7 +50,6 @@ class TweetSerializerWithComments(serializers.ModelSerializer):
     def get_comments(self, obj):
         limit = self.context.get('limit', None)
         comments = obj.comment_set.all().order_by('-created_at')
-        print(limit)
         if limit is not None:
-            comments = comments[:limit+1]
+            comments = comments[:limit]
         return CommentSerializer(comments, many=True).data
