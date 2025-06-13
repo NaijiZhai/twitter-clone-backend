@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import ForeignKey
 
+from likes.models import Like
 from tweets.models import Tweet
 
 
@@ -15,6 +17,11 @@ class Comment(models.Model):
 
     class Meta:
         index_together = (('tweet', 'created_at'),)
+
+    @property
+    def like_set(self):
+        return Like.objects.filter(content_type=ContentType.objects.get_for_model(self.__class__),
+                                   object_id=self.id).order_by('-created_at')
 
     def __str__(self):
         return f'at {self.updated_at} {self.user} comments {self.content} on {self.tweet}'
