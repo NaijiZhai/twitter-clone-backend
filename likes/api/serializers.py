@@ -1,3 +1,5 @@
+from rest_framework.serializers import ModelSerializer
+
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
@@ -47,3 +49,37 @@ class LikeSerializerForCreate(serializers.ModelSerializer):
             user=self.context['request'].user,
         )
         return like
+
+
+class LikeSerializerForDelete(ModelSerializer):
+    content_type = serializers.ChoiceField(choices=['comment', 'tweet'])
+    content_id = serializers.IntegerField()
+
+    class Meta:
+        model = Like
+        fields = 'content_type', 'content_id'
+
+    def _get_model_class(self, data):
+        if data['content_type'] == 'comment':
+            return Comment
+        if data['content_type'] == 'tweet':
+            return Tweet
+        return None
+
+    def validate(self, data):
+        model_class = self._get_model_class(data)
+        if model_class is None:
+            raise ValidationError({'content_type': 'Content type does not exist'})
+        liked_object = model_class.objects.filter(id=data['content_id']).first()
+        if liked_object is None:
+            raise ValidationError({'content_id': 'Object does not exist'})
+        return data
+
+    def delete(self, validated_data):
+        model_class = self._get_model_class(validated_data)
+        return Like.objects.filter(
+            content_type=ContentType.objects.get_for_model(model_class),
+            content_id=validated_data['content_id'],
+            user=self.context['request'].user,
+        ).delete()
+

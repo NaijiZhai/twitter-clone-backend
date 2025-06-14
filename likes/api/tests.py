@@ -88,23 +88,46 @@ class LikeApiTests(TestCase):
         self.assertEqual(comment.like_set.count(), 1)
 
         # login required
-        response = self.anonymous_client.post(LIKE_CANCEL_URL, like_comment_data)
+        response = self.anonymous_client.delete(LIKE_CANCEL_URL, like_comment_data)
         self.assertEqual(response.status_code, 403)
 
-        # get is not allowed
-        response = self.zhai_client.get(LIKE_CANCEL_URL, like_comment_data)
-        self.assertEqual(response.status_code, 405)
 
         # wrong content_type
-        response = self.zhai_client.post(LIKE_CANCEL_URL, {
+        response = self.zhai_client.delete(LIKE_CANCEL_URL, {
             'content_type': 'wrong',
             'content_id': 1,
         })
         self.assertEqual(response.status_code, 400)
 
         # wrong object_id
-        response = self.zhai_client.post(LIKE_CANCEL_URL, {
+        response = self.zhai_client.delete(LIKE_CANCEL_URL, {
             'content_type': 'comment',
             'content_id': -1,
         })
         self.assertEqual(response.status_code, 400)
+
+
+        # zhou has not liked before
+        response = self.zhou_client.delete(LIKE_CANCEL_URL, like_comment_data)
+        print(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(tweet.like_set.count(), 1)
+        self.assertEqual(comment.like_set.count(), 1)
+
+        # successfully canceled
+        response = self.zhai_client.delete(LIKE_CANCEL_URL, like_comment_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(tweet.like_set.count(), 1)
+        self.assertEqual(comment.like_set.count(), 0)
+
+        # zhai has not liked before
+        response = self.zhai_client.delete(LIKE_CANCEL_URL, like_tweet_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(tweet.like_set.count(), 1)
+        self.assertEqual(comment.like_set.count(), 0)
+
+        # zhou's like has been canceled
+        response = self.zhou_client.delete(LIKE_CANCEL_URL, like_tweet_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(tweet.like_set.count(), 0)
+        self.assertEqual(comment.like_set.count(), 0)
