@@ -14,5 +14,5 @@ class NewsFeedViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = self.get_queryset()
-        return Response({'newsfeeds': NewsFeedSerializer(queryset, many=True).data})
+        return Response({'newsfeeds': NewsFeedSerializer(queryset, many=True, context={'request':request}).data})
 

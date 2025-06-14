@@ -25,7 +25,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     @require_all_params(params=['tweet_id'])
     def list(self, request, *args, **kwargs):
         comments = self.filter_queryset(self.get_queryset())
-        serializer = CommentSerializerForList(comments, many=True)
+        serializer = CommentSerializerForList(comments, context={'request':request}, many=True)
         return Response({'comments':serializer.data}, status=200)
 
 
@@ -43,7 +43,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Response({'message': 'error', 'errors': serializer.errors}, status=400)
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'request':request}).data,
             status=201
         )
 

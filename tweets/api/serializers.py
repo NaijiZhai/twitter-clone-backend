@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializerForTweetResponse, UserSerializer
 from comments.api.serializers import CommentSerializer
+from likes.api.serializers import LikeSerializer
+from likes.services import LikeService
 from tweets.models import Tweet
 
 
@@ -32,24 +34,49 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
 
 class TweetSerializer(serializers.ModelSerializer):
     user = UserSerializerForTweetResponse(read_only=True)
+    has_liked = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet
-        fields = ('id', 'user', 'content', 'created_at')
+        fields = ('id',
+                  'user',
+                  'content',
+                  'created_at',
+                  'comment_count',
+                  'like_count',
+                  'has_liked')
+
+    def get_has_liked(self, obj):
+        request = self.context.get('request')
+        if request is None:
+            return False
+        return LikeService.has_user_liked(request.user, obj)
+
+    def get_comment_count(self, obj):
+        return obj.comment_set.count()
+
+    def get_like_count(self, obj):
+        return obj.like_set.count()
 
 
-class TweetSerializerWithComments(serializers.ModelSerializer):
+class TweetSerializerWithDetails(TweetSerializer):
     user = UserSerializer()
     comments = serializers.SerializerMethodField()
-
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Tweet
-        fields = ('id', 'user', 'content', 'created_at', 'comments')
+        fields = ('id', 'user', 'content', 'created_at', 'comments', 'likes', 'like_count', 'comment_count',
+                  'has_liked')
 
     def get_comments(self, obj):
         limit = self.context.get('limit', None)
         comments = obj.comment_set.all().order_by('-created_at')
         if limit is not None:
             comments = comments[:limit]
-        return CommentSerializer(comments, many=True).data
+        return CommentSerializer(comments, context=self.context,many=True).data
+
+    def get_likes(self, obj):
+        return LikeSerializer(obj.like_set.all(), many=True).data

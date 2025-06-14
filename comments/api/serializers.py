@@ -2,15 +2,25 @@ from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializer
 from comments.models import Comment
+from likes.services import LikeService
 from tweets.models import Tweet
 
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    has_liked = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Comment
-        fields = 'id', 'tweet_id', 'user', 'content', 'created_at'
+        fields = 'id', 'tweet_id', 'user', 'content', 'created_at','like_count','has_liked'
+
+    def get_has_liked(self, obj):
+        return LikeService.has_user_liked(self.context['request'].user, obj)
+
+    def get_like_count(self, obj):
+        return obj.like_set.count()
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
@@ -44,7 +54,15 @@ class CommentSerializerForUpdate(serializers.ModelSerializer):
 
 class CommentSerializerForList(serializers.ModelSerializer):
 
+    has_liked = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
-        fields = ('content', 'tweet_id', 'user_id')
+        fields = ('content', 'tweet_id', 'user_id','has_liked', 'like_count')
         ordering = ('-created_at',)
+
+    def get_has_liked(self, obj):
+        return LikeService.has_user_liked(self.context['request'].user, obj)
+    def get_like_count(self, obj):
+        return obj.like_set.count()
