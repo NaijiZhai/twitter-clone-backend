@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
+import notification
 from comments.api.permissions import IsOwner
 from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate, \
     CommentSerializerForList
@@ -42,6 +43,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response({'message': 'error', 'errors': serializer.errors}, status=400)
         comment = serializer.save()
+        notification.services.NotificationService.send_comment_notification(comment)
         return Response(
             CommentSerializer(comment, context={'request':request}).data,
             status=201
