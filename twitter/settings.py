@@ -136,6 +136,44 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+#https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+#https://www.linkedin.com/pulse/resolving-minio-behind-cloudflare-proxy-403-error-bhavesh-deshmukh-pk1nf/
+#https://community.cloudflare.com/t/content-length-is-removed-on-response-of-head-method/628350?page=2
+import sys
+
+TESTING = (" ".join(sys.argv).find("manage.py test") != -1)
+
+if TESTING:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+else:
+    STORAGES = {
+        "default": {
+            # "BACKEND": "utils.storage.CustomS3Storage",
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": "admin",
+                "secret_key": "admin123",
+                "bucket_name": "summer-project",
+                "endpoint_url": "http://192.168.68.73:9000",
+                "region_name": "us-east-1",
+                "addressing_style": "path",
+                # "signature_version": "s3v4",
+                # "use_ssl": True,
+                # "verify": True,
+            }
+        },
+
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        }
+    }
+
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+
+
+
 LOGGING = {
     'version': 1,
     'filters': {
