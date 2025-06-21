@@ -1,27 +1,26 @@
+from accounts.models import UserProfile
 from testing.testcases import TestCase
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 LOGIN_URL = '/api/accounts/login/'
 LOGOUT_URL = '/api/accounts/logout/'
 SIGNUP_URL = '/api/accounts/signup/'
 LOGIN_STATUS_URL = '/api/accounts/login_status/'
-
+USER_PROFILE_DETAIL_URL = '/api/profiles/{}/'
 
 class AccountApiTests(TestCase):
 
     def setUp(self):
         # @before
         self.client = APIClient()
-        self.user = self.createUser(
+        self.user = self.create_user(
             username='admin',
             email='admin@zhai.com',
             password='correct password',
         )
 
-    def createUser(self, username, email, password):
-        return User.objects.create_user(username, email, password)
 
     def test_login(self):
         response = self.client.get(LOGIN_URL, {
@@ -127,7 +126,52 @@ class AccountApiTests(TestCase):
         # 成功注册
         response = self.client.post(SIGNUP_URL, data)
         self.assertEqual(response.status_code, 201)
+        self.assertEqual(UserProfile.objects.count(),2)
+        self.assertIsNotNone(UserProfile.objects.filter(user__username='someone').first())
         self.assertEqual(response.data['user']['username'], 'someone')
         # 验证用户已经登入
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
+        
+        
+class UserProfileAPITests(TestCase):
+
+    def test_update(self):
+        zhai, zhai_client = self.create_user_and_client('zhai')
+        p = zhai.profile
+        p.nickname = 'old nickname'
+        p.save()
+        url = USER_PROFILE_DETAIL_URL.format(p.id)
+
+        response = self.anonymous_client.put(url,  {'nickname': 'a new nickname'})
+        self.assertEqual(response.status_code, 403)
+
+        # test can only be updated by user himself.
+        _, zhou_client = self.create_user_and_client('zhou')
+        response = zhou_client.put(url, {
+            'nickname': 'a new nickname',
+        })
+        self.assertEqual(response.status_code, 403)
+        p.refresh_from_db()
+        self.assertEqual(p.nickname, 'old nickname')
+
+        # update nickname
+        response = zhai_client.put(url, {
+            'nickname': 'a new nickname',
+        })
+        self.assertEqual(response.status_code, 200)
+        p.refresh_from_db()
+        self.assertEqual(p.nickname, 'a new nickname')
+
+        # update avatar
+        response = zhai_client.put(url, {
+            'avatar': SimpleUploadedFile(
+                name='zhai-avatar.jpg',
+                content=str.encode('a fake image'),
+                content_type='image/jpeg',
+            ),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual('zhai-avatar' in response.data['avatar'], True)
+        p.refresh_from_db()
+        self.assertIsNotNone(p.avatar)

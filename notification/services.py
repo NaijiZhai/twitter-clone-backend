@@ -16,7 +16,7 @@ class NotificationService:
             'tweet': 'liked your tweet',
             'comment': 'liked your comment'
         }
-        verb = verb_mapping.get(type(target).__name__.lower(), None)
+        verb = verb_mapping.get(target._meta.model_name, None)
         # print(
         #     f"Sending notification for {target.user} to {like.user} "
         #     f"with verb {verb} and target {target}"

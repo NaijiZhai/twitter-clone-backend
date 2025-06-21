@@ -1,9 +1,9 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 import notification
-from comments.api.permissions import IsOwner
+from utils.permissions import IsOwner
 from comments.api.serializers import CommentSerializerForCreate, CommentSerializer, CommentSerializerForUpdate, \
     CommentSerializerForList
 from comments.models import Comment
