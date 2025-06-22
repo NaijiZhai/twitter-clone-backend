@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import ForeignKey
 
 from likes.models import Like
+from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
 
 
 # Create your models here.
@@ -35,3 +36,30 @@ class Tweet(models.Model):
 
     def __str__(self):
         return f'{self.created_at} {self.user}: {self.content}'
+
+
+class TweetPhoto(models.Model):
+    tweet = ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
+    user = ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+
+    file = models.FileField()
+    order = models.IntegerField(default=0)
+
+    status = models.IntegerField(choices=TWEET_PHOTO_STATUS_CHOICES, default= TweetPhotoStatus.PENDING)
+
+    has_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        index_together = [
+            ('tweet', 'order'),# most common pattern
+            ('user', 'created_at'),# querying all photos by a user in chronological order
+            ('tweet', 'status', 'has_deleted'),  # combined filter for tweet photos
+            ('status', 'created_at'),  # for admin dashboard queries
+            ('has_deleted', 'created_at'), # for recycle
+        ]
+
+    def __str__(self):
+        return f'{self.tweet} {self.user} {self.status}'
