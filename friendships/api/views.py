@@ -5,8 +5,10 @@ from rest_framework.response import Response
 
 from friendships.api.serializers import FollowerSerializer, FollowingSerializer, FriendSerializerForCreate
 from friendships.models import Friendship
+from newsfeeds.services import NewsFeedService
 from utils.auth import CsrfExemptSessionAuthentication
 from utils.decorator import require_all_params, require_any_params
+from utils.pagination import CustomPagination
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -14,6 +16,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     queryset = Friendship.objects.all()
     serializer_class = FriendSerializerForCreate
     authentication_classes = [CsrfExemptSessionAuthentication]
+    pagination_class = CustomPagination
 
     def get_permissions(self):
         if self.action == 'create' or self.action == 'destroy':
@@ -42,12 +45,10 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
     @require_any_params(params=['from_user_id', 'to_user_id',])
     def list(self, request):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
+        page = self.paginate_queryset(self.get_queryset())
+        serializer = self.get_serializer(page, many=True)
         key = 'followings' if 'from_user_id' in request.query_params else 'followers'
-        return Response({
-            key: serializer.data,
-        }, status=200)
+        return self.get_paginated_response({key: serializer.data})
 
     @require_all_params(params=['from_user_id', 'to_user_id', ], request_attr='data')
     def create(self, request):
@@ -58,6 +59,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
         serializer.save()
+        NewsFeedService.inject_newsfeed(from_user=request.data['from_user_id'], to_user=request.data['to_user_id'] )
         return Response({'success': True, 'duplicate': False, 'data': serializer.data}, status=201)
 
     @require_all_params(params=['from_user_id', 'to_user_id', ])
@@ -68,4 +70,5 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                                                   to_user_id=query_params['to_user_id']).delete()
         if not is_deleted:
             return Response({'message': 'friendship does not exit'}, status=400)
+        NewsFeedService.remove_newsfeed(from_user=query_params['from_user_id'], to_user=query_params['to_user_id'])
         return Response({'success': True, 'delete': is_deleted}, status=204)

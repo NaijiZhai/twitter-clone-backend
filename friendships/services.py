@@ -6,6 +6,10 @@ from tweets.models import Tweet
 
 class FriendshipServices(object):
     @classmethod
-    def get_followers(self, tweet : Tweet):
+    def get_followers(cls, tweet : Tweet):
         friendships  = Friendship.objects.filter(to_user=tweet.user).prefetch_related('from_user')
         return [friendship.from_user for friendship in friendships]
+
+    @classmethod
+    def has_followed(cls, from_user : User, to_user : User):
+        return Friendship.objects.filter(from_user=from_user, to_user=to_user).exists()
