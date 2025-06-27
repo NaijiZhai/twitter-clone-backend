@@ -3,10 +3,12 @@ from rest_framework.response import Response
 
 from newsfeeds.api.serializers import NewsFeedSerializer
 from newsfeeds.models import NewsFeed
+from utils.pagination import CustomEndlessPagination
 
 
-class NewsFeedViewSet(viewsets.ViewSet):
+class NewsFeedViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = CustomEndlessPagination
 
 
     def get_queryset(self):
@@ -14,5 +16,6 @@ class NewsFeedViewSet(viewsets.ViewSet):
 
     def list(self, request):
         queryset = self.get_queryset()
-        return Response({'newsfeeds': NewsFeedSerializer(queryset, many=True, context={'request':request}).data})
+        queryset = self.paginate_queryset(queryset)
+        return self.get_paginated_response(NewsFeedSerializer(queryset, many=True).data)
 
