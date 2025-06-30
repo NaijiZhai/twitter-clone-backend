@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from accounts.services import UserServices
+from utils.cache_utils import CacheUtils
 
 
 # Create your models here.
@@ -24,4 +25,4 @@ class Like(models.Model):
 
     @property
     def cached_user(self):
-        return UserServices.get_user_by_id_through_cache(user_id=self.user_id)
+        return CacheUtils.get_object_in_cache(User, self.user_id)

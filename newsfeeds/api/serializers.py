@@ -5,7 +5,7 @@ from tweets.api.serializers import TweetSerializer
 
 
 class NewsFeedSerializer(serializers.ModelSerializer):
-    tweet = TweetSerializer()
+    tweet = TweetSerializer(source='cached_tweet', read_only=True)
 
     class Meta:
         model = NewsFeed

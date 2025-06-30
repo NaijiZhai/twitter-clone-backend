@@ -8,6 +8,7 @@ from django.db.models import ForeignKey
 from accounts.services import UserServices
 from likes.models import Like
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
+from utils.cache_utils import CacheUtils
 
 
 # Create your models here.
@@ -40,7 +41,7 @@ class Tweet(models.Model):
 
     @property
     def cached_user(self):
-        return  UserServices.get_user_by_id_through_cache(user_id=self.user_id)
+        return CacheUtils.get_object_in_cache(User, self.user_id)
 
 
 class TweetPhoto(models.Model):

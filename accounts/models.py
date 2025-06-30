@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-
+from utils.cache_utils import CacheUtils
 
 
 # Create your models here.
@@ -23,7 +23,7 @@ def get_user_profile(user):
     from accounts.services import UserServices
     if hasattr(user, '_userprofile'):
         return getattr(user, '_userprofile')
-    profile= UserServices.get_userprofile_by_user_id_through_cache(user_id=user.id)
+    profile =  UserServices.get_userprofile_by_user_id_through_cache(user.id)
     setattr(user, '_userprofile', profile)
     return profile
 
