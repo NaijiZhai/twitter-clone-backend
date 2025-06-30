@@ -1,6 +1,7 @@
 from rest_framework.serializers import ModelSerializer
 
 from accounts.api.serializers import UserSerializer, UserSerializerForLike
+from accounts.services import UserServices
 from comments.models import Comment
 from django.contrib.contenttypes.models import ContentType
 from likes.models import Like
@@ -10,7 +11,7 @@ from tweets.models import Tweet
 
 
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializerForLike()
+    user = UserSerializerForLike(source='cached_user', read_only=True)
 
     class Meta:
         model = Like

@@ -14,6 +14,7 @@ class AccountApiTests(TestCase):
 
     def setUp(self):
         # @before
+        self.clear_cache()
         self.client = APIClient()
         self.user = self.create_user(
             username='admin',
@@ -132,6 +133,8 @@ class AccountApiTests(TestCase):
         # 验证用户已经登入
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
+    
+
         
         
 class UserProfileAPITests(TestCase):
@@ -175,3 +178,4 @@ class UserProfileAPITests(TestCase):
         self.assertEqual('zhai-avatar' in response.data['avatar'], True)
         p.refresh_from_db()
         self.assertIsNotNone(p.avatar)
+        

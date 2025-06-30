@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import ForeignKey
 
+from accounts.services import UserServices
 from likes.models import Like
 from tweets.models import Tweet
 
@@ -25,4 +26,8 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'at {self.updated_at} {self.user} comments {self.content} on {self.tweet}'
+
+    @property
+    def cached_user(self):
+        return UserServices.get_user_by_id_through_cache(user_id=self.user_id)
 

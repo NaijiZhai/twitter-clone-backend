@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+
+
 # Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
@@ -18,18 +20,14 @@ class UserProfile(models.Model):
 
 # Add the profile property to User model
 def get_user_profile(user):
+    from accounts.services import UserServices
     if hasattr(user, '_userprofile'):
         return getattr(user, '_userprofile')
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile= UserServices.get_userprofile_by_user_id_through_cache(user_id=user.id)
     setattr(user, '_userprofile', profile)
     return profile
 
 User.add_to_class('profile', property(get_user_profile))
 
 
-#use signal
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
 

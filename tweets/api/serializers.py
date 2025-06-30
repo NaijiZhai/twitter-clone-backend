@@ -43,7 +43,7 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
 
 
 class TweetSerializer(serializers.ModelSerializer):
-    user = UserSerializerForTweetResponse(read_only=True)
+    user = UserSerializerForTweetResponse(source='cached_user',read_only=True)
     has_liked = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
@@ -80,7 +80,7 @@ class TweetSerializer(serializers.ModelSerializer):
 
 
 class TweetSerializerWithDetails(TweetSerializer):
-    user = UserSerializerWithProfile()
+    user = UserSerializerWithProfile(source='cached_user', read_only=True)
     comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 

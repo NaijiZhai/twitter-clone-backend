@@ -18,6 +18,7 @@ NEWSFEED_LIST_API = '/api/newsfeeds/'
 class CommentApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.zhai = self.create_user('zhai')
         self.zhai_client = APIClient()
         self.zhai_client.force_authenticate(self.zhai)
@@ -158,11 +159,11 @@ class CommentApiTests(TestCase):
         self.create_comment(self.zhai, tweet)
         response = self.zhou_client.get(TWEET_LIST_API, {'user_id': self.zhai.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['tweets'][0]['comment_count'], 1)
+        self.assertEqual(response.data['results'][0]['comment_count'], 1)
 
         # test newsfeeds list api
         self.create_comment(self.zhou, tweet)
         self.create_newsfeed(self.zhou, tweet)
         response = self.zhou_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['newsfeeds'][0]['tweet']['comment_count'], 2)
+        self.assertEqual(response.data['results'][0]['tweet']['comment_count'], 2)

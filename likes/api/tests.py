@@ -8,6 +8,7 @@ LIKE_CANCEL_URL = '/api/likes/'
 class LikeApiTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.zhai, self.zhai_client = self.create_user_and_client('zhai')
         self.zhou, self.zhou_client = self.create_user_and_client('zhou')
 

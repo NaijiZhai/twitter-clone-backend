@@ -2,6 +2,7 @@ import random
 from functools import cached_property
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import caches
 from django.test import TestCase as DjangoTestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
@@ -52,3 +53,7 @@ class TestCase(DjangoTestCase):
         client = APIClient()
         client.force_authenticate(user)
         return user, client
+
+    def clear_cache(self):
+        caches['testing'].clear()
+        caches['default'].clear()
