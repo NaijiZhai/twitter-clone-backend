@@ -1,11 +1,10 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.cache import caches
 
 from accounts.models import UserProfile
-from twitter.cache_constants import USER_PATTERN, USERPROFILE_PATTERN
+from utils.cache_constants import USERPROFILE_PATTERN
 
-cache = caches['default'] if settings.TESTING else None
+cache = caches['testing'] if settings.TESTING else caches['default']
 
 
 class UserServices:

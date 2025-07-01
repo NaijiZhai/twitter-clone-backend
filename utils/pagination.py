@@ -41,9 +41,9 @@ class CustomEndlessPagination(BasePagination):
         if 'created_at__gt' in request.query_params:
             queryset = queryset.filter(created_at__gt=request.query_params['created_at__gt'])
 
-        query = queryset.order_by('-created_at')[: self.page_size + 1]
-        self.has_next_page = query.count() > self.page_size
-        return query[: self.page_size]
+        results = list(queryset[: self.page_size + 1])
+        self.has_next_page = len(results) > self.page_size
+        return results[: self.page_size]
 
     def get_paginated_response(self, data):
         return Response({

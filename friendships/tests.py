@@ -1,7 +1,6 @@
 from friendships.models import Friendship
-from friendships.services import FriendshipServices, cache
+from friendships.services import FriendshipServices
 from testing.testcases import TestCase
-from twitter.cache_constants import FOLLOWING_PATTERN
 
 
 class FriendshipServiceTests(TestCase):
@@ -19,10 +18,7 @@ class FriendshipServiceTests(TestCase):
 
         user_id_set = FriendshipServices.get_following_id_set(self.zhai.id)
         self.assertSetEqual(user_id_set, {user1.id, user2.id, self.zhou.id})
-        print(cache.get(FOLLOWING_PATTERN.format(user_id=self.zhai.id)))
 
         Friendship.objects.filter(from_user=self.zhai, to_user=self.zhou).delete()
-        print(cache.get(FOLLOWING_PATTERN.format(user_id=self.zhai.id)))
         user_id_set = FriendshipServices.get_following_id_set(self.zhai.id)
-        print(cache.get(FOLLOWING_PATTERN.format(user_id=self.zhai.id)))
         self.assertSetEqual(user_id_set, {user1.id, user2.id})

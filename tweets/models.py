@@ -24,7 +24,10 @@ class Tweet(models.Model):
     # updated_at = models.DateTimeField(auto_now=True, help_text='the date the tweet was updated')
 
     class Meta:
-        index_together = (('user', 'created_at'),)
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['created_at']),
+        ]
         ordering = ('user', '-created_at',)
 
     @property

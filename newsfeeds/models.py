@@ -12,7 +12,10 @@ class NewsFeed(models.Model):
 
     class Meta:
         ordering = ('-created_at',)
-        index_together = ('user', 'created_at')
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['created_at']),
+        ]
         unique_together = ('user', 'tweet')
 
     def __str__(self):
