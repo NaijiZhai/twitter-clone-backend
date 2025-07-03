@@ -3,10 +3,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import ForeignKey
 
-from accounts.services import UserServices
 from likes.models import Like
 from tweets.models import Tweet
-from utils.cache_utils import CacheUtils
+from cache_utils.cache_utils import CacheUtils
 
 
 # Create your models here.

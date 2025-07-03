@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.cache import caches
 
 from accounts.models import UserProfile
-from utils.cache_constants import USERPROFILE_PATTERN
+from cache_utils.cache_constants import USERPROFILE_PATTERN
 
 cache = caches['testing'] if settings.TESTING else caches['default']
 

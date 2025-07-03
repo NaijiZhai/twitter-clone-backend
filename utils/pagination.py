@@ -1,5 +1,8 @@
+from dateutil import parser
 from rest_framework.pagination import PageNumberPagination, BasePagination
 from rest_framework.response import Response
+
+from cache_utils.cache_constants import REDIS_LIST_LIMIT_LENGTH
 
 
 class CustomPagination(PageNumberPagination):
@@ -44,6 +47,39 @@ class CustomEndlessPagination(BasePagination):
         results = list(queryset[: self.page_size + 1])
         self.has_next_page = len(results) > self.page_size
         return results[: self.page_size]
+
+    def paginated_ordered_list(self, queryset, request):
+        if 'created_at__gt' in request.query_params:
+            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            objects = []
+            for obj in queryset:
+                if obj.created_at > created_at__gt:
+                    objects.append(obj)
+                else:
+                    break
+            self.has_next_page = False
+            return objects
+
+        index = 0
+        if 'created_at__lt' in request.query_params:
+            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            for index, obj in enumerate(queryset):
+                if obj.created_at < created_at__lt:
+                    break
+            else:
+                queryset = []
+        self.has_next_page = len(queryset) > index + self.page_size
+        return queryset[index: index + self.page_size]
+
+    def paginated_cached_list(self, cached_list, request):
+        paginated_list = self.paginated_ordered_list(cached_list, request)
+        if 'created_at__gt' in request.query_params:
+            return paginated_list
+        if self.has_next_page:
+            return paginated_list
+        if len(cached_list) < REDIS_LIST_LIMIT_LENGTH:
+            return paginated_list
+        return None
 
     def get_paginated_response(self, data):
         return Response({

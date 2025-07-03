@@ -4,7 +4,7 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from accounts.services import UserServices
 from accounts.models import UserProfile
-from utils.cache_utils import CacheUtils
+from cache_utils.cache_utils import CacheUtils
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

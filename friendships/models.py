@@ -1,10 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
 
-from accounts.services import UserServices
-from utils.cache_utils import CacheUtils
+from cache_utils.cache_utils import CacheUtils
 
 
 # Create your models here.

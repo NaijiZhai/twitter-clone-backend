@@ -2,7 +2,6 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from friendships.services import FriendshipServices
 from friendships.models import Friendship
-from utils.cache_utils import CacheUtils
 
 
 @receiver(post_save, sender=Friendship)

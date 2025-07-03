@@ -1,6 +1,6 @@
 import redis
 from django.conf import settings
-from utils.cache_constants import REDIS_KEY_EXPIRE_TIME, REDIS_DB, REDIS_HOST, REDIS_PORT
+from cache_utils.cache_constants import REDIS_DB, REDIS_HOST, REDIS_PORT
 
 class RedisClient:
     conn = None

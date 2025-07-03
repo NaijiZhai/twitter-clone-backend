@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from newsfeeds.api.serializers import NewsFeedSerializer
 from newsfeeds.models import NewsFeed
 from utils.pagination import CustomEndlessPagination
+from newsfeeds.services import NewsFeedService
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
@@ -11,11 +12,12 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     pagination_class = CustomEndlessPagination
 
 
-    def get_queryset(self):
-        return NewsFeed.objects.filter(user = self.request.user).order_by('-created_at')
-
     def list(self, request):
-        queryset = self.get_queryset()
-        queryset = self.paginate_queryset(queryset)
-        return self.get_paginated_response(NewsFeedSerializer(queryset, many=True).data)
+        cached_newsfeeds = NewsFeedService.get_cached_newsfeed(user_id = request.user.id)
+        page = self.paginator.paginated_cached_list(cached_newsfeeds, request)
+        if not page:
+            queryset = NewsFeed.objects.filter(user_id = request.user.id).order_by('-created_at')
+            page = self.paginate_queryset(queryset)
+        serializer = NewsFeedSerializer(page, many = True, context = {'request': request})
+        return self.get_paginated_response(data=serializer.data)
 

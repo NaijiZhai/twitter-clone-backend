@@ -3,8 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.auth.models import User
 
-from accounts.services import UserServices
-from utils.cache_utils import CacheUtils
+from cache_utils.cache_utils import CacheUtils
 
 
 # Create your models here.

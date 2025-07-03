@@ -1,9 +1,5 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from utils.cache_utils import CacheUtils
 
 
 # Create your models here.

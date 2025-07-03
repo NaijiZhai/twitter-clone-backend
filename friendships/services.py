@@ -3,7 +3,7 @@ from django.core.cache import caches
 
 from friendships.models import Friendship
 from tweets.models import Tweet
-from utils.cache_constants import FOLLOWING_PATTERN
+from cache_utils.cache_constants import FOLLOWING_PATTERN
 
 cache = caches['testing'] if settings.TESTING else caches['default']
 
