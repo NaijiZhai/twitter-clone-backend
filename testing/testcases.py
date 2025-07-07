@@ -7,6 +7,7 @@ from django.test import TestCase as DjangoTestCase
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
+from cache_utils.redis_client import RedisClient
 from comments.models import Comment
 from friendships.models import Friendship
 from likes.models import Like
@@ -60,5 +61,5 @@ class TestCase(DjangoTestCase):
         return user, client
 
     def clear_cache(self):
+        RedisClient.clear()
         caches['testing'].clear()
-        caches['default'].clear()

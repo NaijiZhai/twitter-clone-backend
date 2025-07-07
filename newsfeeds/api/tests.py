@@ -19,6 +19,7 @@ class NewsFeedApiTests(TestCase):
 
     def setUp(self):
         RedisClient.clear()
+        self.clear_cache()
         self.zhai = self.create_user('zhai', email='<EMAIL>')
         self.zhai_client = APIClient()
         self.zhai_client.force_authenticate(self.zhai)

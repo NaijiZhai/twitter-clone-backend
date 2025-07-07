@@ -1,7 +1,11 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
+
+from cache_utils.redis_client import RedisClient
+from cache_utils.redis_helper import RedisHelper
 from testing.testcases import TestCase
 from tweets.models import Tweet, TweetPhoto
+from tweets.services import TweetService
 from utils.pagination import CustomEndlessPagination
 
 TWEET_LIST_API = '/api/tweets/'
@@ -12,11 +16,15 @@ class TweetApiTests(TestCase):
 
     def setUp(self):
         self.clear_cache()
+        RedisClient.clear()
         self.zhai = self.create_user('zhai', 'zhai@zhai.com')
         self.tweets1 = [
-            self.create_tweet(self.zhai)
-            for i in range(3)
+
         ]
+        for i in range(3):
+            TweetService.get_cached_tweets(self.zhai.id)
+            self.tweets1.append(self.create_tweet(self.zhai))
+
         self.zhai_client = APIClient()
         self.zhai_client.force_authenticate(self.zhai)
 
@@ -34,7 +42,7 @@ class TweetApiTests(TestCase):
         # request
         response = self.anonymous_client.get(TWEET_LIST_API, {'user_id': self.zhai.id})
         self.assertEqual(response.status_code, 200)
-        print(response.data)
+
         self.assertEqual(len(response.data['results']), 3)
         response = self.anonymous_client.get(TWEET_LIST_API, {'user_id': self.zhou.id})
         self.assertEqual(len(response.data['results']), 2)
@@ -151,6 +159,7 @@ class TweetApiTests(TestCase):
 
         # tweet include all details
         profile = self.zhai.profile
+        print(response.data)
         self.assertEqual(response.data['user']['nickname'], profile.nickname)
         self.assertEqual(response.data['user']['avatar_url'], None)
     

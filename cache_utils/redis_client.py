@@ -15,5 +15,7 @@ class RedisClient:
     def clear(cls):
         if not settings.TESTING:
             raise Exception("Can't clear connection in production")
+        #call this first
+        get_connection = cls.get_connection()
         if cls.conn:
             cls.conn.flushdb()

@@ -13,7 +13,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def invalidate_user_cache(sender, instance, **kwargs):
-    CacheUtils.invalidate_cache(model = sender, id = instance.id)
+    CacheUtils.set_object_in_cache(model = sender, obj = instance)
 
 @receiver(post_save, sender=UserProfile)
 def invalidate_userprofile_cache(sender, instance, **kwargs):
@@ -21,7 +21,7 @@ def invalidate_userprofile_cache(sender, instance, **kwargs):
 
 @receiver(pre_delete, sender=User)
 def invalidate_user_cache_pre_delete(sender, instance, **kwargs):
-    CacheUtils.invalidate_cache(model = sender, id = instance.id)
+    CacheUtils.set_object_in_cache(model = sender, obj= instance)
 
 @receiver(pre_delete, sender=UserProfile)
 def invalidate_userprofile_cache_pre_delete(sender, instance, **kwargs):
