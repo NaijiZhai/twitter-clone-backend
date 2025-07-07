@@ -198,9 +198,9 @@ class NewsFeedApiTests(TestCase):
         for i in range(list_limit + page_size):
             self.assertEqual(newsfeeds[i].id, results[i]['id'])
 
-        # a followed user create a new tweet
+        # a followed user created a new tweet
         self.create_friendship(self.zhai, self.zhou)
-        new_tweet = self.create_tweet(self.zhou, '  a new tweet')
+        new_tweet = self.create_tweet(self.zhou, 'an new tweet')
         NewsFeedService.fanout_to_followers(new_tweet)
 
         def _test_newsfeeds_after_new_feed_pushed():
