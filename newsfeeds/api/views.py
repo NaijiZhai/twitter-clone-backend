@@ -17,7 +17,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         page = self.paginator.paginated_cached_list(cached_newsfeeds, request)
         if not page:
             queryset = NewsFeed.objects.filter(user_id = request.user.id).order_by('-created_at')
-            page = self.paginate_queryset(queryset)
+            page = self.paginator.paginate_queryset(queryset, request)
         serializer = NewsFeedSerializer(page, many = True, context = {'request': request})
         return self.get_paginated_response(data=serializer.data)
 
