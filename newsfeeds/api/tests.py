@@ -18,7 +18,6 @@ FOLLOW_URL = '/api/friendships/'
 class NewsFeedApiTests(TestCase):
 
     def setUp(self):
-        RedisClient.clear()
         self.clear_cache()
         self.zhai = self.create_user('zhai', email='<EMAIL>')
         self.zhai_client = APIClient()
@@ -35,6 +34,9 @@ class NewsFeedApiTests(TestCase):
         for i in range(3):
             following = self.create_user('zhou_following{}'.format(i), email='<EMAIL>{}'.format(i))
             Friendship.objects.create(from_user=self.zhou, to_user=following)
+
+    def tearDown(self):
+        self.clear_cache()
 
     def test_list(self):
 

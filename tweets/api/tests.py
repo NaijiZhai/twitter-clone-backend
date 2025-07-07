@@ -34,6 +34,9 @@ class TweetApiTests(TestCase):
             for i in range(2)
         ]
 
+    def tearDown(self):
+        self.clear_cache()
+
     def test_list_api(self):
         # user_id
         response = self.anonymous_client.get(TWEET_LIST_API)

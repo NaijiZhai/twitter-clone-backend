@@ -22,6 +22,9 @@ class AccountApiTests(TestCase):
             password='correct password',
         )
 
+    def tearDown(self):
+        self.clear_cache()
+
 
     def test_login(self):
         response = self.client.get(LOGIN_URL, {

@@ -1,4 +1,5 @@
 from notifications.models import Notification
+
 from testing.testcases import TestCase
 
 COMMENT_URL = '/api/comments/'
@@ -13,6 +14,9 @@ class NotificationTests(TestCase):
         self.zhai, self.zhai_client = self.create_user_and_client('zhai')
         self.zhou, self.zhou_client = self.create_user_and_client('dong')
         self.zhou_tweet = self.create_tweet(self.zhou)
+
+    def tearDown(self):
+        self.clear_cache()
 
     def test_comment_create_api_trigger_notification(self):
         self.assertEqual(Notification.objects.count(), 0)
@@ -115,7 +119,7 @@ class NotificationApiTests(TestCase):
         self.assertEqual(response.data['count'], 1)
         response = self.zhai_client.get(NOTIFICATION_URL, {'unread': False})
         self.assertEqual(response.data['count'], 1)
-    
+
     def test_update(self):
         self.zhou_client.post(LIKE_URL, {
             'content_type': 'tweet',
@@ -149,9 +153,8 @@ class NotificationApiTests(TestCase):
         response = self.zhai_client.put(url, {'unread': True})
         response = self.zhai_client.get(unread_url)
         self.assertEqual(response.data['unread_count'], 2)
-        #only update unread
+        # only update unread
         response = self.zhai_client.put(url, {'verb': 'how are u', 'unread': False})
         self.assertEqual(response.status_code, 200)
         notification.refresh_from_db()
         self.assertNotEqual(notification.verb, 'how are u')
-

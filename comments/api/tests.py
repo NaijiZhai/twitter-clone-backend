@@ -28,6 +28,9 @@ class CommentApiTests(TestCase):
 
         self.tweet = self.create_tweet(self.zhai)
 
+    def tearDown(self):
+        self.clear_cache()
+
     def test_create(self):
         # log in
         response = self.anonymous_client.post(COMMENT_URL)

@@ -31,6 +31,9 @@ class FriendshipApiTests(TestCase):
             following = self.create_user('zhou_following{}'.format(i), email='<EMAIL1>{}'.format(i))
             Friendship.objects.create(from_user=self.zhou, to_user=following)
 
+    def tearDown(self):
+        self.clear_cache()
+
     def test_follow(self):
         url = FOLLOW_URL
 
