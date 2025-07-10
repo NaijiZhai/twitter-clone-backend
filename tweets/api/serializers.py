@@ -2,6 +2,7 @@ from openai import OpenAI
 from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializerForTweetResponse, UserSerializer, UserSerializerWithProfile
+from cache_utils.redis_helper import RedisHelper
 from comments.api.serializers import CommentSerializer
 from likes.api.serializers import LikeSerializer
 from likes.services import LikeService
@@ -67,10 +68,12 @@ class TweetSerializer(serializers.ModelSerializer):
         return LikeService.has_user_liked(request.user, obj)
 
     def get_comment_count(self, obj):
-        return obj.comment_set.count()
+        return RedisHelper.get_count(obj, 'comments_count')
+
 
     def get_like_count(self, obj):
-        return obj.like_set.count()
+        return RedisHelper.get_count(obj, 'likes_count')
+        # return obj.like_set.count()
 
     def get_photo_urls(self,obj):
         photo_urls = []

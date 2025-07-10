@@ -15,6 +15,8 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     content = models.TextField(max_length=140)
     updated_at = models.DateTimeField(auto_now=True)
+    likes_count = models.IntegerField(default=0)
+
 
     class Meta:
         index_together = (('tweet', 'created_at'),)

@@ -25,3 +25,8 @@ class TweetService(object):
     def push_tweets_to_cache(cls, tweet):
         key = USER_TWEETS_PATTERN.format(user_id=tweet.user_id)
         RedisHelper.push_obj(key, tweet, Tweet)
+
+    @classmethod
+    def delete_cache(cls, tweet):
+        key = USER_TWEETS_PATTERN.format(user_id = tweet.user_id)
+        RedisHelper.invalidate_cache(key)

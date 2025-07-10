@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 import cache_utils.redis_helper
@@ -22,3 +22,8 @@ def push_tweet_to_redis(sender, instance, created, **kwargs):
     if not created:
         return
     TweetService.push_tweets_to_cache(instance)
+
+@receiver(post_delete, sender=Tweet)
+def invalidate_cache_post_delete(sender, instance, **kwargs):
+    TweetService.delete_cache(instance)
+    CacheUtils.invalidate_cache(Tweet, instance.id)

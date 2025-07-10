@@ -77,3 +77,47 @@ class RedisHelper:
         if objects:
             conn.rpush(key, *objects)
             conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+
+
+    @classmethod
+    def invalidate_cache(cls, key):
+        conn = RedisClient.get_connection()
+        conn.delete(key)
+
+    @classmethod
+    def get_key_for_count(cls, obj, attr):
+        return f"{obj.__class__.__name__}.{attr}:{obj.id}"
+
+    @classmethod
+    def increment_count(cls, obj, attr):
+        key = cls.get_key_for_count(obj, attr)
+        conn = RedisClient.get_connection()
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+            # increment has been made in db.
+            return getattr(obj, attr)
+        return conn.incr(key)
+
+    @classmethod
+    def decrement_count(cls, obj, attr):
+        key = cls.get_key_for_count(obj, attr)
+        conn = RedisClient.get_connection()
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+            return getattr(obj, attr)
+        return conn.decr(key)
+
+    @classmethod
+    def get_count(cls, obj, attr):
+        key = cls.get_key_for_count(obj, attr)
+        conn = RedisClient.get_connection()
+        if not conn.exists(key):
+            obj.refresh_from_db()
+            conn.set(key, getattr(obj, attr))
+            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+            return getattr(obj, attr)
+        return int(conn.get(key))

@@ -26,15 +26,17 @@ class LikeApiTests(TestCase):
 
         # post success
         response = self.zhai_client.post(LIKE_BASE_URL, data)
-        print(response.data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(tweet.like_set.count(), 1)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        self.assertEqual(tweet.likes_count, 1)
 
         # duplicate likes
         self.zhai_client.post(LIKE_BASE_URL, data)
-        self.assertEqual(tweet.like_set.count(), 1)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        self.assertEqual(tweet.likes_count, 1)
         self.zhou_client.post(LIKE_BASE_URL, data)
-        self.assertEqual(tweet.like_set.count(), 2)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        self.assertEqual(tweet.likes_count, 2)
 
     def test_comment_likes(self):
         tweet = self.create_tweet(self.zhai)
@@ -55,7 +57,6 @@ class LikeApiTests(TestCase):
             'content_id': comment.id,
         })
         self.assertEqual(response.status_code, 400)
-        print(response.data)
         self.assertEqual('content_type' in response.data['errors'], True)
 
         # wrong content_id
@@ -69,14 +70,17 @@ class LikeApiTests(TestCase):
         # post success
         response = self.zhai_client.post(LIKE_BASE_URL, data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(comment.like_set.count(), 1)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(comment.likes_count, 1)
 
         # duplicate likes
         response = self.zhai_client.post(LIKE_BASE_URL, data)
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(comment.like_set.count(), 1)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(comment.likes_count, 1)
         self.zhou_client.post(LIKE_BASE_URL, data)
-        self.assertEqual(comment.like_set.count(), 2)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(comment.likes_count, 2)
 
     def test_cancel(self):
         tweet = self.create_tweet(self.zhai)
@@ -85,8 +89,10 @@ class LikeApiTests(TestCase):
         like_tweet_data = {'content_type': 'tweet', 'content_id': tweet.id}
         self.zhai_client.post(LIKE_BASE_URL, like_comment_data)
         self.zhou_client.post(LIKE_BASE_URL, like_tweet_data)
-        self.assertEqual(tweet.like_set.count(), 1)
-        self.assertEqual(comment.like_set.count(), 1)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(tweet.likes_count, 1)
+        self.assertEqual(comment.likes_count, 1)
 
         # login required
         response = self.anonymous_client.delete(LIKE_CANCEL_URL, like_comment_data)
@@ -112,23 +118,31 @@ class LikeApiTests(TestCase):
         response = self.zhou_client.delete(LIKE_CANCEL_URL, like_comment_data)
         print(response.data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(tweet.like_set.count(), 1)
-        self.assertEqual(comment.like_set.count(), 1)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(tweet.likes_count, 1)
+        self.assertEqual(comment.likes_count, 1)
 
         # successfully canceled
         response = self.zhai_client.delete(LIKE_CANCEL_URL, like_comment_data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(tweet.like_set.count(), 1)
-        self.assertEqual(comment.like_set.count(), 0)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(tweet.likes_count, 1)
+        self.assertEqual(comment.likes_count, 0)
 
         # zhai has not liked before
         response = self.zhai_client.delete(LIKE_CANCEL_URL, like_tweet_data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(tweet.like_set.count(), 1)
-        self.assertEqual(comment.like_set.count(), 0)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(tweet.likes_count, 1)
+        self.assertEqual(comment.likes_count, 0)
 
         # zhou's like has been canceled
         response = self.zhou_client.delete(LIKE_CANCEL_URL, like_tweet_data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(tweet.like_set.count(), 0)
-        self.assertEqual(comment.like_set.count(), 0)
+        tweet = tweet.__class__.objects.get(id=tweet.id)
+        comment = comment.__class__.objects.get(id=comment.id)
+        self.assertEqual(tweet.likes_count, 0)
+        self.assertEqual(comment.likes_count, 0)

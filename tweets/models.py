@@ -19,6 +19,16 @@ class Tweet(models.Model):
                       )
     created_at = models.DateTimeField(auto_now_add=True, help_text='the date the tweet was created')
     content = models.CharField(max_length=255, help_text='the content of the tweet')
+    #set null equals true to prevent django to apply 0 to all existed tweet objects, which will lock the entire table
+    # that prevents everyone to read/write the table and if this is a lot of lines in the table this might take hours,
+    #so the best way to add this should be:
+
+    # 1/ set this to likes_count = models.IntegerField(null=True, default=None), then migrate it will be super fast, then
+    # run UPDATE tweet SET likes_count=0 WHERE likes_count IS NULL LIMIT 10000; (repeat until finished).
+    # Finally, change the model and DB column to null=False, default=0, and migrate again.
+
+    likes_count = models.IntegerField(default=0, help_text='the number of likes for the tweet', null=False)
+    comments_count = models.IntegerField(default=0, help_text='the number of comments for the tweet', null=False)
 
     # updated_at = models.DateTimeField(auto_now=True, help_text='the date the tweet was updated')
 
