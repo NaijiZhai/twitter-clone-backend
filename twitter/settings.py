@@ -147,19 +147,29 @@ if TESTING:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 else:
     STORAGES = {
+        # "default": {
+        #     # "BACKEND": "utils.storage.CustomS3Storage",
+        #     "BACKEND": "storages.backends.s3.S3Storage",
+        #     "OPTIONS": {
+        #         "access_key": "admin",
+        #         "secret_key": "admin123",
+        #         "bucket_name": "summer-project",
+        #         # "endpoint_url": "http://192.168.68.73:9000",
+        #         "region_name": "us-east-1",
+        #         "addressing_style": "path",
+        #         # "signature_version": "s3v4",
+        #         # "use_ssl": True,
+        #         # "verify": True,
+        #     }
+        # },
         "default": {
-            # "BACKEND": "utils.storage.CustomS3Storage",
-            "BACKEND": "storages.backends.s3.S3Storage",
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
             "OPTIONS": {
-                "access_key": "admin",
-                "secret_key": "admin123",
-                "bucket_name": "summer-project",
-                "endpoint_url": "http://192.168.68.73:9000",
-                "region_name": "us-east-1",
-                "addressing_style": "path",
-                # "signature_version": "s3v4",
-                # "use_ssl": True,
-                # "verify": True,
+                "bucket_name": "twitter-bucket-naijizhai",
+                "region_name": "us-east-2",
+                "signature_version": "s3v4",
+                # "access_key": "aws configure/awscli",
+                # "secret_key": "",
             }
         },
 
@@ -224,3 +234,21 @@ CACHES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+#Celery for MQ
+CELERY_BROKER_URL = 'sqs://'
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'region': 'us-east-2',
+    'visibility_timeout': 30,
+    'wait_time_seconds': 20,
+}
+from kombu import Queue
+
+CELERY_TASK_QUEUES = (
+    Queue('Twitte_Queue.fifo',routing_key='Twitte_Queue.fifo'),
+)
+
+CELERY_TASK_ALWAYS_EAGER = TESTING
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/8'
+
