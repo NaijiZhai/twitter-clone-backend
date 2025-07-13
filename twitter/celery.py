@@ -15,6 +15,10 @@ app.autodiscover_tasks()
 
 
 # Define a simple debug task for testing purposes.
-@app.task(bind=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
+# @app.task(bind=True, queue='Twitte_Queue.fifo')
+# def debug_task(self):
+#     import  time
+#     print(f'Before: {self.request!r}')
+#     time.sleep(10)
+#     print(f'Request: {self.request!r}')
+

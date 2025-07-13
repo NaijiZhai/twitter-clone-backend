@@ -6,10 +6,13 @@ from accounts.services import UserServices
 from accounts.models import UserProfile
 from cache_utils.cache_utils import CacheUtils
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
+
+#avoid collision， see models
+
+# @receiver(post_save, sender=User)
+# def create_user_profile(sender, instance, created, **kwargs):
+#     if created and not hasattr(instance, 'profile'):
+#         UserProfile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def invalidate_user_cache(sender, instance, **kwargs):

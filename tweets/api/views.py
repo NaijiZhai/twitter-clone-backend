@@ -61,3 +61,8 @@ class TweetViewSet(viewsets.GenericViewSet):
                 return Response({'success': False, 'error': 'comment_limit must be integer'}, status=400)
             return Response(
                 TweetSerializerWithDetails(tweet, context={'limit': comment_limit, 'request': request}).data)
+
+    def destroy(self, request, pk=None):
+        tweet = self.get_object()
+        tweet.delete()
+        return Response({'success': True}, status=204)
