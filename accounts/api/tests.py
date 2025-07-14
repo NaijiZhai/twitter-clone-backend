@@ -109,7 +109,7 @@ class AccountApiTests(TestCase):
         # print(response.data)
         self.assertEqual(response.status_code, 400)
 
-        # 测试密码太短
+        # password too short
         response = self.client.post(SIGNUP_URL, {
             'username': 'someone',
             'email': 'someone@zhai.com',
@@ -118,7 +118,7 @@ class AccountApiTests(TestCase):
         # print(response.data)
         self.assertEqual(response.status_code, 400)
 
-        # 测试用户名太长
+        # username too long
         response = self.client.post(SIGNUP_URL, {
             'username': 'username is tooooooooooooooooo loooooooooooong',
             'email': 'someone@zhai.com',
@@ -126,14 +126,14 @@ class AccountApiTests(TestCase):
         })
         # print(response.data)
         self.assertEqual(response.status_code, 400)
-
-        # 成功注册
         response = self.client.post(SIGNUP_URL, data)
         self.assertEqual(response.status_code, 201)
+        # p = self.user.profile
+        # p1 = User.objects.filter(username='someone').first().profile
         self.assertEqual(UserProfile.objects.count(),2)
         self.assertIsNotNone(UserProfile.objects.filter(user__username='someone').first())
         self.assertEqual(response.data['user']['username'], 'someone')
-        # 验证用户已经登入
+        # verify auto login
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
     

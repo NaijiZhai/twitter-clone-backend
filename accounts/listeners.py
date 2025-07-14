@@ -8,11 +8,13 @@ from cache_utils.cache_utils import CacheUtils
 
 
 #avoid collision， see models
-
+#
 # @receiver(post_save, sender=User)
 # def create_user_profile(sender, instance, created, **kwargs):
-#     if created and not hasattr(instance, 'profile'):
-#         UserProfile.objects.create(user=instance)
+#     if created:
+#         UserProfile.objects.get_or_create(user=instance)
+
+
 
 @receiver(post_save, sender=User)
 def invalidate_user_cache(sender, instance, **kwargs):

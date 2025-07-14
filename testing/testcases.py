@@ -26,7 +26,10 @@ class TestCase(DjangoTestCase):
             password = 'generic password'
         if not email:
             email = str(random.randint(0,10000)) + '@a.com'
-        return User.objects.create_user(username, email, password)
+        user = User.objects.create_user(username, email, password)
+        #important, it will create the userprofile.
+        user.profile
+        return user
 
     def create_tweet(self, user, content=None):
         if content is None:
