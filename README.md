@@ -292,7 +292,6 @@ celery -A twitter worker -l info
 ### NewsFeed Related
 
 - `GET /api/newsfeeds/` - Get newsfeeds of the current user
--
 
 ### Notification Related
 
