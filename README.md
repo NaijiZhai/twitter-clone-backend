@@ -207,7 +207,7 @@ tweet.likes_count  # Direct field access and cached fields
 ## Tech Stack
 
 - **Framework**: Django 4.2.21
-- **RestFrameWork**: djangorestframework 3.16.0
+- **RestFrameWork**: Django REST Framework 3.16.0
 - **Storage**: Amazon S3 for production, MinIO used during early-stage/local development
 - **Database**: MySQL (transactional), Apache HBase (for newsfeeds/friendships)
 - **Cache**: Redis
@@ -230,26 +230,72 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
 ```
+### 2. Database Setup
+
+#### MySQL Configuration
+
+1. **Start MySQL service**
+# macOS
+brew services start mysql
+# Ubuntu/Debian
+sudo systemctl start mysql sudo systemctl enable mysql
+
+
+2. **Create database and user**
+# Login to MySQL
+mysql -u root -p
+# Create database
+CREATE DATABASE twitter_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# Create user and grant privileges
+CREATE USER 'twitter_user'@'localhost' IDENTIFIED BY 'your_secure_password'; GRANT ALL PRIVILEGES ON twitter_db.* TO 'twitter_user'@'localhost'; FLUSH PRIVILEGES; EXIT;
+
+3. **Configure Django settings**
+# In twitter/settings.py
+DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter_db', 'USER': 'twitter_user', 'PASSWORD': 'your_secure_password', 'HOST': 'localhost', 'PORT': '3306', 'OPTIONS': { 'charset': 'utf8mb4', } } }
+
+
+### 3. Redis Setup
+1. **Start Redis service**
+# macOS
+brew services start redis
+# Ubuntu/Debian
+sudo systemctl start redis-server sudo systemctl enable redis-server
+
+
+2. **Test Redis connection**
+bash redis-cli ping
+# Should return: PONG
+
+
+3. **Configure Django Redis settings**
+# In twitter/settings.py
+CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
+# Celery configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+
+### 4. Django Project Setup
 
 # Create database migrations
-
 python manage.py makemigrations
-
 # Apply migrations
-
 python manage.py migrate
-
 # Create superuser
-
 python manage.py createsuperuser
 
-# Start Django development server
 
+## Service Management
+
+### Start All Services
+# Start MySQL
+sudo systemctl start mysql
+# Start Redis
+sudo systemctl start redis
+# Start Django
 python manage.py runserver
-
-# Start Celery worker (new terminal)
-
+# Start Celery worker
 celery -A twitter worker -l info
 
 ## API Endpoints
@@ -342,3 +388,5 @@ python manage.py test -v2
 This project is for educational purposes only.
 
 **Note**: This is a learning project and should not be used in production environments.
+
+
