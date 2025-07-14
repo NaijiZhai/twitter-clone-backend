@@ -237,65 +237,65 @@ pip install -r requirements.txt
 #### MySQL Configuration
 
 1. **Start MySQL service**
-# macOS
+#### macOS
 brew services start mysql
-# Ubuntu/Debian
+#### Ubuntu/Debian
 sudo systemctl start mysql sudo systemctl enable mysql
 
 
 2. **Create database and user**
-# Login to MySQL
+#### Login to MySQL
 mysql -u root -p
-# Create database
+#### Create database
 CREATE DATABASE twitter_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-# Create user and grant privileges
+#### Create user and grant privileges
 CREATE USER 'twitter_user'@'localhost' IDENTIFIED BY 'your_secure_password'; GRANT ALL PRIVILEGES ON twitter_db.* TO 'twitter_user'@'localhost'; FLUSH PRIVILEGES; EXIT;
 
 3. **Configure Django settings**
-# In twitter/settings.py
+#### In twitter/settings.py
 DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter_db', 'USER': 'twitter_user', 'PASSWORD': 'your_secure_password', 'HOST': 'localhost', 'PORT': '3306', 'OPTIONS': { 'charset': 'utf8mb4', } } }
 
 
 ### 3. Redis Setup
 1. **Start Redis service**
-# macOS
+#### macOS
 brew services start redis
-# Ubuntu/Debian
+#### Ubuntu/Debian
 sudo systemctl start redis-server sudo systemctl enable redis-server
 
 
 2. **Test Redis connection**
 bash redis-cli ping
-# Should return: PONG
+#### Should return: PONG
 
 
 3. **Configure Django Redis settings**
-# In twitter/settings.py
+#### In twitter/settings.py
 CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
-# Celery configuration
+#### Celery configuration
 CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 
 ### 4. Django Project Setup
 
-# Create database migrations
+#### Create database migrations
 python manage.py makemigrations
-# Apply migrations
+####Apply migrations
 python manage.py migrate
-# Create superuser
+####Create superuser
 python manage.py createsuperuser
 
 
 ## Service Management
 
 ### Start All Services
-# Start MySQL
+#### Start MySQL
 sudo systemctl start mysql
-# Start Redis
+#### Start Redis
 sudo systemctl start redis
-# Start Django
+#### Start Django
 python manage.py runserver
-# Start Celery worker
+#### Start Celery worker
 celery -A twitter worker -l info
 
 ## API Endpoints
