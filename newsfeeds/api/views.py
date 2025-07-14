@@ -10,7 +10,7 @@ from newsfeeds.services import NewsFeedService
 class NewsFeedViewSet(viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = CustomEndlessPagination
-
+    queryset = NewsFeed.objects.all()
 
     def list(self, request):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeed(user_id = request.user.id)
