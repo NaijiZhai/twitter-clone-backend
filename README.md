@@ -172,12 +172,14 @@ Django's built-in User model with standard fields:
 
 ### 8. NewsFeed Model (newsfeeds_newsfeed)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `user` | ForeignKey | User whose feed | FK to User, ON DELETE SET NULL |
-| `tweet` | ForeignKey | Tweet in feed | FK to Tweet, ON DELETE SET NULL |
-| `created_at` | DateTimeField | Feed entry creation time | auto_now_add=True |
+| Field | Type | Description                            | Constraints                      |
+|-------|------|----------------------------------------|----------------------------------|
+| `id` | AutoField | Primary key                            | PK, Auto-increment               |
+| `user` | ForeignKey | User whose feed                        | FK to User, ON DELETE SET NULL   |
+| `tweet` | ForeignKey | Tweet in feed                          | FK to Tweet, ON DELETE SET NULL  |
+| `created_at` | DateTimeField | Feed entry creation time               | auto_now_add=True                |
+| `insert_tag` | CharField | tag for  get id when using bulk_create | max_length = 36, db_index = true |
+
 
 **Unique Constraints:**
 - `(user, tweet)` - Prevent duplicate feed entries

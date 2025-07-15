@@ -9,6 +9,7 @@ class NewsFeed(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     tweet = models.ForeignKey(Tweet, on_delete=models.SET_NULL, null=True)
+    insert_tag = models.CharField(max_length=36, null=True, db_index=True)
 
     class Meta:
         ordering = ('-created_at',)

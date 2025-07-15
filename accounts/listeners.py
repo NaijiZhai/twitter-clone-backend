@@ -7,8 +7,12 @@ from accounts.models import UserProfile
 from cache_utils.cache_utils import CacheUtils
 
 
-#avoid collision， see models
-#
+# avoid collision， see models
+
+# IntegrityError at /admin/auth/user/add/
+# (1062, "Duplicate entry '13' for key 'accounts_userprofile.user_id'")
+
+
 # @receiver(post_save, sender=User)
 # def create_user_profile(sender, instance, created, **kwargs):
 #     if created:

@@ -73,8 +73,10 @@ class CustomEndlessPagination(BasePagination):
 
     def paginated_cached_list(self, cached_list, request):
         paginated_list = self.paginated_ordered_list(cached_list, request)
+        # for lastest ones
         if 'created_at__gt' in request.query_params:
             return paginated_list
+        # all objects we need are in cache
         if self.has_next_page:
             return paginated_list
         if len(cached_list) < REDIS_LIST_LIMIT_LENGTH:
