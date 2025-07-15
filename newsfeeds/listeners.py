@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 import cache_utils.cache_utils
@@ -13,3 +13,6 @@ def push_newsfeed_to_cache(sender, instance, created, **kwargs):
         return
     NewsFeedService.push_newsfeed_to_cache(instance)
 
+@receiver(post_delete, sender = NewsFeed)
+def invalidate_newsfeed_cache(sender, instance,**kwargs):
+    cache_utils.cache_utils.CacheUtils.invalidate_cache(sender, instance.id)

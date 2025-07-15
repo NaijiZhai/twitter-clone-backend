@@ -184,27 +184,27 @@ AWS_DEFAULT_ACL = None
 
 
 
-LOGGING = {
-    'version': 1,
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-        }
-    },
-    'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        }
-    }
-}
+# LOGGING = {
+#     'version': 1,
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler',
+#         }
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         }
+#     }
+# }
 
 # https://github.com/jazzband/django-redis
 CACHES = {
@@ -245,10 +245,17 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 from kombu import Queue
 
+#celery -A twitter worker -Q PriorityQueue.fifo,Twitte_Queue.fifo --loglevel=info
 CELERY_TASK_QUEUES = (
-    Queue('Twitte_Queue.fifo',routing_key='Twitte_Queue.fifo'),
+    Queue('Standard',routing_key='NewsFeed'),
+    Queue('HighPriority',routing_key='HighPriority'),
 )
 
 CELERY_TASK_ALWAYS_EAGER = TESTING
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/8'
 
+BROKER_TRANSPORT_OPTIONS = {
+    'region': 'us-east-2',
+    'polling_interval': 1,
+    'wait_time_seconds': 10,
+}

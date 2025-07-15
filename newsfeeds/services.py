@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from django.contrib.auth.models import User
 
@@ -6,13 +7,13 @@ from cache_utils.cache_constants import NEWSFEED_USER_PATTERN
 from cache_utils.redis_helper import RedisHelper
 from friendships.services import FriendshipServices
 from newsfeeds.models import NewsFeed
-from newsfeeds.tasks import fanout_newsfeed
+from newsfeeds.tasks import fanout_newsfeeds_main_task
 from tweets.models import Tweet
 
 
 class NewsFeedService(object):
     @classmethod
-    def fanout_to_followers(cls, tweet: Tweet):
+    def fanout_to_followers(cls, tweet: Tweet, created_at=None):
         # followers = FriendshipServices.get_followers(tweet=tweet)
         # insert_tag = str(uuid.uuid4())
         # newsfeeds = [NewsFeed(user=follower, tweet=tweet, insert_tag = insert_tag) for follower in followers]
@@ -33,8 +34,7 @@ class NewsFeedService(object):
 
         #use mq for async process, use id because:
         #kombu.exceptions.EncodeError: Object of type Tweet is not JSON serializable
-
-        fanout_newsfeed.delay(tweet.id)
+        fanout_newsfeeds_main_task.delay(tweet.id, tweet.created_at.isoformat(), tweet.user_id)
 
 
 

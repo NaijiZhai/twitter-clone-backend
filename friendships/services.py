@@ -10,9 +10,9 @@ cache = caches['testing'] if settings.TESTING else caches['default']
 
 class FriendshipServices(object):
     @classmethod
-    def get_followers(cls, tweet : Tweet):
-        friendships  = Friendship.objects.filter(to_user=tweet.user).prefetch_related('from_user')
-        return [friendship.from_user for friendship in friendships]
+    def get_followers(cls, to_user_id):
+        return Friendship.objects.filter(to_user_id=to_user_id).values_list('from_user_id', flat=True)
+
 
 
     @classmethod
@@ -29,4 +29,6 @@ class FriendshipServices(object):
     def invalidate_following_cache(cls, user_id):
         key = FOLLOWING_PATTERN.format(user_id=user_id)
         cache.delete(key)
+
+
 
