@@ -8,6 +8,7 @@ from comments.api.serializers import CommentSerializerForCreate, CommentSerializ
     CommentSerializerForList
 from comments.models import Comment
 from utils.decorator import require_all_params
+from utils.rate_limiter import rate_limit, get_client_ip
 
 
 # Create your views here.
@@ -24,6 +25,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
 
     @require_all_params(params=['tweet_id'])
+    @rate_limit('3/m', key_func=lambda r: r.user.id if r.user.is_authenticated else f'anon:{get_client_ip(r)}')
     def list(self, request, *args, **kwargs):
         comments = self.filter_queryset(self.get_queryset())
         serializer = CommentSerializerForList(comments, context={'request':request}, many=True)
