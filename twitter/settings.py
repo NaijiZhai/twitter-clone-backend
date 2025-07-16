@@ -259,3 +259,7 @@ BROKER_TRANSPORT_OPTIONS = {
     'polling_interval': 1,
     'wait_time_seconds': 10,
 }
+
+RATELIMIT_REDIS_HOST = 'localhost'
+RATELIMIT_REDIS_PORT = 6379
+RATELIMIT_REDIS_DB = 11

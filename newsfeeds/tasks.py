@@ -31,7 +31,7 @@ def fanout_newsfeeds_main_task(tweet_id, created_at, tweet_user_id):
         try:
             fanout_newsfeeds_batch_task.delay(tweet_id, created_at.isoformat(), batch_ids)
         except Exception as e:
-            logger.error(f'Error dispatching fanout batch: {e}')
+            logger.error(f'Error dispatching fanout batch: {e}, batch_ids: {batch_ids}')
         index += FANOUT_BATCH_SIZE
 
     return '{} newsfeeds going to fanout, {} batches created.'.format(
