@@ -29,10 +29,10 @@ This project replicates essential features of Twitter using Django, optimized fo
 ### Advanced Features (TBD)
 
 - **Nested Comments** - Support for comment on comments
-- **Tweets Update** - Support for updating tweets
 - **Optimize Storage** - Switch friendships to HBase or Casandra for write heavy operation.
 - **Friend Recommendation** - AI-powered user discovery and friend suggestions
-- **Content Moderation** - Local LLM-based automated content review and filtering(currently rely on OpenAI API)
+- **Content Moderation** - Progressive local content moderation system with user trust scoring, automated filtering, and
+  multi-tier review process (implemented with local ML models, replacing OpenAI API dependency)
 
 ### Technical Features
 

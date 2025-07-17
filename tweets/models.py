@@ -30,7 +30,7 @@ class Tweet(models.Model):
     likes_count = models.IntegerField(default=0, help_text='the number of likes for the tweet', null=False)
     comments_count = models.IntegerField(default=0, help_text='the number of comments for the tweet', null=False)
 
-    # updated_at = models.DateTimeField(auto_now=True, help_text='the date the tweet was updated')
+    updated_at = models.DateTimeField(auto_now=True, help_text='the date the tweet was updated')
 
     class Meta:
         indexes = [

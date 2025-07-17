@@ -56,6 +56,7 @@ class TweetSerializer(serializers.ModelSerializer):
                   'user',
                   'content',
                   'created_at',
+                  'updated_at',
                   'comment_count',
                   'like_count',
                   'has_liked',
@@ -101,3 +102,29 @@ class TweetSerializerWithDetails(TweetSerializer):
 
     def get_likes(self, obj):
         return LikeSerializer(obj.like_set.all(), many=True).data
+
+
+class TweetSerializerForUpdate(serializers.ModelSerializer):
+    content = serializers.CharField(max_length=140, min_length=6)
+
+    class Meta:
+        model = Tweet
+        fields = ('content',)
+
+    def validate(self, data):
+        content = data['content']
+        # 同样进行内容审核
+        response = OpenAI(api_key=('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
+                                   'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j3'
+                                   '80bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
+            input=content,
+        )
+        if response.results[0].flagged:
+            raise serializers.ValidationError('Harmful content！')
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data['content']
+        instance.save()
+        return instance

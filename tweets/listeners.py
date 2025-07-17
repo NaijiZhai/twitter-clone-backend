@@ -12,10 +12,6 @@ from tweets.services import TweetService
 def invalidate_cache_post_save(sender, instance, created, **kwargs):
     CacheUtils.set_object_in_cache(model=Tweet, obj=instance)
 
-@receiver(post_save, sender=Tweet)
-def invalidate_cache_post_save_tweet(sender, instance, created, **kwargs):
-    CacheUtils.set_object_in_cache(model=Tweet, obj=instance)
-
 
 @receiver(post_save, sender=Tweet)
 def push_tweet_to_redis(sender, instance, created, **kwargs):

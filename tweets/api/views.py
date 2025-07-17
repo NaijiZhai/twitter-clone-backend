@@ -4,12 +4,14 @@ from rest_framework.response import Response
 
 from accounts.api.serializers import UserSerializerForTweetResponse
 from newsfeeds.services import NewsFeedService
-from tweets.api.serializers import TweetSerializerForCreate, TweetSerializer, TweetSerializerWithDetails
+from tweets.api.serializers import TweetSerializerForCreate, TweetSerializer, TweetSerializerWithDetails, \
+    TweetSerializerForUpdate
 from tweets.models import Tweet
 from utils.decorator import require_all_params
 from utils.pagination import CustomEndlessPagination
 from tweets.services import TweetService
 from utils.rate_limiter import rate_limit
+from utils.permissions import IsOwner
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -20,6 +22,8 @@ class TweetViewSet(viewsets.GenericViewSet):
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
             return [permissions.AllowAny()]
+        if self.action == 'update' or self.action == 'destroy':
+            return [permissions.IsAuthenticated(), IsOwner()]
         return [permissions.IsAuthenticated()]
 
     @require_all_params(params=['user_id'])
@@ -71,3 +75,21 @@ class TweetViewSet(viewsets.GenericViewSet):
         tweet = self.get_object()
         tweet.delete()
         return Response({'success': True}, status=204)
+
+    @require_all_params(params=['content'], request_attr='data')
+    @rate_limit('3/s')
+    def update(self, request, pk=None):
+        tweet = self.get_object()
+        serializer = TweetSerializerForUpdate(tweet, data=request.data, context={'request': request}, partial=True)
+        if not serializer.is_valid():
+            return Response({
+                'success': False,
+                'error': serializer.errors,
+            }, status=400)
+        updated_tweet = serializer.save()
+        return Response({
+            'success': True,
+            'data': TweetSerializer(updated_tweet, context={'request': request}).data,
+        }, status=200)
+
+
