@@ -32,7 +32,8 @@ This project replicates essential features of Twitter using Django, optimized fo
 - **Optimize Storage** - Switch friendships to HBase or Casandra for write heavy operation.
 - **Friend Recommendation** - AI-powered user discovery and friend suggestions
 - **Content Moderation** - Progressive local content moderation system with user trust scoring, automated filtering, and
-  multi-tier review process (implemented with local ML models, replacing OpenAI API dependency)
+  multi-tier review process (implemented with local ML models, replacing OpenAI API dependency), see details
+  in:https://blog.x.com/en_us/topics/product/2023/freedom-of-speech-not-reach-an-update-on-our-enforcement-philosophy
 
 ### Technical Features
 
