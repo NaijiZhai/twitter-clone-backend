@@ -84,6 +84,7 @@ twitter_project/
 | `created_at`     | DateTimeField | Tweet creation timestamp   | auto_now_add=True              |
 | `likes_count`    | IntegerField  | Number of likes            | default=0                      |
 | `comments_count` | IntegerField  | Number of comments         | default=0                      |
+| `updated_at`     | DateTimeField | Tweet update timestamp     | auto_now=True                  |
 
 **Indexes:**
 
