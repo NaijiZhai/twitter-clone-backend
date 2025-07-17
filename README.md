@@ -1,6 +1,14 @@
 # Twitter Clone Project
 
-A Django-based Twitter clone project that implements core social media platform features
+A Django-based Twitter clone project that implements core social media platform features,
+
+## References
+
+- [redianmarku/Django‑Twitter‑Clone] – A fully functional Twitter-like application built with Django, including user
+  auth, tweets, follows, and likes.
+- [vBubbaa/django‑twitter] – A Django Twitter clone with full user system, AJAX-powered tweets, likes, comments, and
+  follow features.
+- [ArJSarmiento/Twitter‑Clone‑Django] – Responsive Twitter clone on Django 3.2 including editing, likes, and follows.
 
 ## Project Overview
 
@@ -22,9 +30,9 @@ This project replicates essential features of Twitter using Django, optimized fo
 
 - **Nested Comments** - Support for comment on comments
 - **Tweets Update** - Support for updating tweets
+- **Optimize Storage** - Switch friendships to HBase or Casandra for write heavy operation.
 - **Friend Recommendation** - AI-powered user discovery and friend suggestions
 - **Content Moderation** - Local LLM-based automated content review and filtering(currently rely on OpenAI API)
-
 
 ### Technical Features
 
@@ -68,34 +76,36 @@ twitter_project/
 
 ### 1. Tweet Model (tweets_tweet)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `user` | ForeignKey | User who created the tweet | FK to User, ON DELETE SET NULL |
-| `content` | CharField | Tweet content | max_length=255 |
-| `created_at` | DateTimeField | Tweet creation timestamp | auto_now_add=True |
-| `likes_count` | IntegerField | Number of likes | default=0 |
-| `comments_count` | IntegerField | Number of comments | default=0 |
+| Field            | Type          | Description                | Constraints                    |
+|------------------|---------------|----------------------------|--------------------------------|
+| `id`             | AutoField     | Primary key                | PK, Auto-increment             |
+| `user`           | ForeignKey    | User who created the tweet | FK to User, ON DELETE SET NULL |
+| `content`        | CharField     | Tweet content              | max_length=255                 |
+| `created_at`     | DateTimeField | Tweet creation timestamp   | auto_now_add=True              |
+| `likes_count`    | IntegerField  | Number of likes            | default=0                      |
+| `comments_count` | IntegerField  | Number of comments         | default=0                      |
 
 **Indexes:**
+
 - `(user, created_at)` - User's tweets ordered by time
 - `(created_at)` - Global timeline
 
 ### 2. TweetPhoto Model (tweets_tweetphoto)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `tweet` | ForeignKey | Associated tweet | FK to Tweet, ON DELETE SET NULL |
-| `user` | ForeignKey | User who uploaded the photo | FK to User, ON DELETE SET NULL |
-| `file` | FileField | Photo file | Required |
-| `order` | IntegerField | Photo order in tweet | default=0 |
-| `status` | IntegerField | Photo status (pending/approved/rejected) | Choices defined |
-| `has_deleted` | BooleanField | Soft delete flag | default=False |
-| `deleted_at` | DateTimeField | Deletion timestamp | null=True |
-| `created_at` | DateTimeField | Upload timestamp | auto_now_add=True |
+| Field         | Type          | Description                              | Constraints                     |
+|---------------|---------------|------------------------------------------|---------------------------------|
+| `id`          | AutoField     | Primary key                              | PK, Auto-increment              |
+| `tweet`       | ForeignKey    | Associated tweet                         | FK to Tweet, ON DELETE SET NULL |
+| `user`        | ForeignKey    | User who uploaded the photo              | FK to User, ON DELETE SET NULL  |
+| `file`        | FileField     | Photo file                               | Required                        |
+| `order`       | IntegerField  | Photo order in tweet                     | default=0                       |
+| `status`      | IntegerField  | Photo status (pending/approved/rejected) | Choices defined                 |
+| `has_deleted` | BooleanField  | Soft delete flag                         | default=False                   |
+| `deleted_at`  | DateTimeField | Deletion timestamp                       | null=True                       |
+| `created_at`  | DateTimeField | Upload timestamp                         | auto_now_add=True               |
 
 **Indexes:**
+
 - `(tweet, order)` - Most common pattern
 - `(user, created_at)` - Querying all photos by a user in chronological order
 - `(tweet, status, has_deleted)` - Tweet photos filtering
@@ -105,97 +115,106 @@ twitter_project/
 ### 3. User Model (auth_user)
 
 Django's built-in User model with standard fields:
+
 - `username`, `email`, `password`, `first_name`, `last_name`
 - `is_staff`, `is_active`, `is_superuser`
 - `date_joined`, `last_login`
 
 ### 4. UserProfile Model (accounts_userprofile)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `user` | OneToOneField | Associated user |ON DELETE SET NULL |
-| `avatar` | FileField | User avatar | null=True |
-| `biography` | TextField | User biography | blank=True |
-| `nickname` | CharField | Display name | max_length=200, blank=True |
-| `created_at` | DateTimeField | Profile creation time | auto_now_add=True |
-| `updated_at` | DateTimeField | Profile update time | auto_now=True |
+| Field        | Type          | Description           | Constraints                |
+|--------------|---------------|-----------------------|----------------------------|
+| `id`         | AutoField     | Primary key           | PK, Auto-increment         |
+| `user`       | OneToOneField | Associated user       | ON DELETE SET NULL         |
+| `avatar`     | FileField     | User avatar           | null=True                  |
+| `biography`  | TextField     | User biography        | blank=True                 |
+| `nickname`   | CharField     | Display name          | max_length=200, blank=True |
+| `created_at` | DateTimeField | Profile creation time | auto_now_add=True          |
+| `updated_at` | DateTimeField | Profile update time   | auto_now=True              |
 
 ### 5. Friendship Model (friendships_friendship)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `from_user` | ForeignKey | User who follows | FK to User, ON DELETE SET NULL |
-| `to_user` | ForeignKey | User being followed | FK to User, ON DELETE SET NULL |
-| `created_at` | DateTimeField | Follow timestamp | auto_now_add=True |
+| Field        | Type          | Description         | Constraints                    |
+|--------------|---------------|---------------------|--------------------------------|
+| `id`         | AutoField     | Primary key         | PK, Auto-increment             |
+| `from_user`  | ForeignKey    | User who follows    | FK to User, ON DELETE SET NULL |
+| `to_user`    | ForeignKey    | User being followed | FK to User, ON DELETE SET NULL |
+| `created_at` | DateTimeField | Follow timestamp    | auto_now_add=True              |
 
 **Unique Constraints:**
+
 - `(from_user, to_user)` - Prevent duplicate follows
 
 **Indexes:**
+
 - `(from_user, created_at)` - User's following list
 - `(to_user, created_at)` - User's followers list
 
 ### 6. Like Model (likes_like)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `user` | ForeignKey | User who liked | FK to User, ON DELETE SET NULL |
-| `content_type` | ForeignKey | Type of liked object | FK to ContentType, ON DELETE SET NULL |
-| `content_id` | PositiveIntegerField | ID of liked object | Required |
-| `target` | GenericForeignKey | Generic relation to liked object | Computed field |
-| `created_at` | DateTimeField | Like timestamp | auto_now_add=True |
+| Field          | Type                 | Description                      | Constraints                           |
+|----------------|----------------------|----------------------------------|---------------------------------------|
+| `id`           | AutoField            | Primary key                      | PK, Auto-increment                    |
+| `user`         | ForeignKey           | User who liked                   | FK to User, ON DELETE SET NULL        |
+| `content_type` | ForeignKey           | Type of liked object             | FK to ContentType, ON DELETE SET NULL |
+| `content_id`   | PositiveIntegerField | ID of liked object               | Required                              |
+| `target`       | GenericForeignKey    | Generic relation to liked object | Computed field                        |
+| `created_at`   | DateTimeField        | Like timestamp                   | auto_now_add=True                     |
 
 **Unique Constraints:**
+
 - `(user, content_type, content_id)` - Prevent duplicate likes
 
 **Indexes:**
+
 - `(content_type, content_id, created_at)` - Likes for an object
 - `(user, content_type, content_id, created_at)` - User's likes
 
 ### 7. Comment Model (comments_comment)
 
-| Field | Type | Description | Constraints |
-|-------|------|-------------|-------------|
-| `id` | AutoField | Primary key | PK, Auto-increment |
-| `user` | ForeignKey | User who commented | FK to User, ON DELETE SET NULL |
-| `tweet` | ForeignKey | Commented tweet | FK to Tweet, ON DELETE SET NULL |
-| `content` | TextField | Comment content | max_length=140 |
-| `likes_count` | IntegerField | Number of likes | default=0 |
-| `created_at` | DateTimeField | Comment creation time | auto_now_add=True |
-| `updated_at` | DateTimeField | Comment update time | auto_now=True |
+| Field         | Type          | Description           | Constraints                     |
+|---------------|---------------|-----------------------|---------------------------------|
+| `id`          | AutoField     | Primary key           | PK, Auto-increment              |
+| `user`        | ForeignKey    | User who commented    | FK to User, ON DELETE SET NULL  |
+| `tweet`       | ForeignKey    | Commented tweet       | FK to Tweet, ON DELETE SET NULL |
+| `content`     | TextField     | Comment content       | max_length=140                  |
+| `likes_count` | IntegerField  | Number of likes       | default=0                       |
+| `created_at`  | DateTimeField | Comment creation time | auto_now_add=True               |
+| `updated_at`  | DateTimeField | Comment update time   | auto_now=True                   |
 
 **Indexes:**
+
 - `(tweet, created_at)` - Comments on a tweet
 
 ### 8. NewsFeed Model (newsfeeds_newsfeed)
 
-| Field | Type | Description                            | Constraints                      |
-|-------|------|----------------------------------------|----------------------------------|
-| `id` | AutoField | Primary key                            | PK, Auto-increment               |
-| `user` | ForeignKey | User whose feed                        | FK to User, ON DELETE SET NULL   |
-| `tweet` | ForeignKey | Tweet in feed                          | FK to Tweet, ON DELETE SET NULL  |
+| Field        | Type          | Description                            | Constraints                      |
+|--------------|---------------|----------------------------------------|----------------------------------|
+| `id`         | AutoField     | Primary key                            | PK, Auto-increment               |
+| `user`       | ForeignKey    | User whose feed                        | FK to User, ON DELETE SET NULL   |
+| `tweet`      | ForeignKey    | Tweet in feed                          | FK to Tweet, ON DELETE SET NULL  |
 | `created_at` | DateTimeField | Feed entry creation time               | auto_now_add=True                |
-| `insert_tag` | CharField | tag for  get id when using bulk_create | max_length = 36, db_index = true |
-
+| `insert_tag` | CharField     | tag for  get id when using bulk_create | max_length = 36, db_index = true |
 
 **Unique Constraints:**
+
 - `(user, tweet)` - Prevent duplicate feed entries
 
 **Indexes:**
+
 - `(user, created_at)` - User's timeline
 - `(created_at)` - Global feed queries
 
 ## Database Design Principles
 
 ### 1. Performance Optimization
+
 - **Strategic Indexing**: Indexes are created based on common query patterns
 - **Denormalization**: `likes_count` and `comments_count` fields avoid expensive COUNT queries
 - **Soft Deletes**: `has_deleted` flag and `SET_NULL`
 
 ### 2. Query Optimization Examples
+
 ```python
 # Efficient user timeline query
 Tweet.objects.filter(user=user).order_by('-created_at')  # Uses (user, created_at) index
@@ -234,70 +253,99 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 ```
+
 ### 2. Database Setup
 
 #### MySQL Configuration
 
 1. **Start MySQL service**
+
 #### macOS
+
 brew services start mysql
+
 #### Ubuntu/Debian
+
 sudo systemctl start mysql sudo systemctl enable mysql
 
-
 2. **Create database and user**
+
 #### Login to MySQL
+
 mysql -u root -p
+
 #### Create database
+
 CREATE DATABASE twitter_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 #### Create user and grant privileges
-CREATE USER 'twitter_user'@'localhost' IDENTIFIED BY 'your_secure_password'; GRANT ALL PRIVILEGES ON twitter_db.* TO 'twitter_user'@'localhost'; FLUSH PRIVILEGES; EXIT;
+
+CREATE USER 'twitter_user'@'localhost' IDENTIFIED BY 'your_secure_password'; GRANT ALL PRIVILEGES ON twitter_db.* TO '
+twitter_user'@'localhost'; FLUSH PRIVILEGES; EXIT;
 
 3. **Configure Django settings**
-#### In twitter/settings.py
-DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter_db', 'USER': 'twitter_user', 'PASSWORD': 'your_secure_password', 'HOST': 'localhost', 'PORT': '3306', 'OPTIONS': { 'charset': 'utf8mb4', } } }
 
+#### In twitter/settings.py
+
+DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter_db', 'USER': 'twitter_user', '
+PASSWORD': 'your_secure_password', 'HOST': 'localhost', 'PORT': '3306', 'OPTIONS': { 'charset': 'utf8mb4', } } }
 
 ### 3. Redis Setup
+
 1. **Start Redis service**
+
 #### macOS
+
 brew services start redis
+
 #### Ubuntu/Debian
+
 sudo systemctl start redis-server sudo systemctl enable redis-server
 
-
 2. **Test Redis connection**
-bash redis-cli ping
+   bash redis-cli ping
+
 #### Should return: PONG
 
-
 3. **Configure Django Redis settings**
-#### In twitter/settings.py
-CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
-#### Celery configuration
-CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
+#### In twitter/settings.py
+
+CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', '
+OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
+
+#### Celery configuration
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 ### 4. Django Project Setup
 
 #### Create database migrations
+
 python manage.py makemigrations
 ####Apply migrations
 python manage.py migrate
 ####Create superuser
 python manage.py createsuperuser
 
-
 ## Service Management
 
 ### Start All Services
+
 #### Start MySQL
+
 sudo systemctl start mysql
+
 #### Start Redis
+
 sudo systemctl start redis
+
 #### Start Django
+
 python manage.py runserver
+
 #### Start Celery worker
+
 celery -A twitter worker -l info
 
 ## API Endpoints

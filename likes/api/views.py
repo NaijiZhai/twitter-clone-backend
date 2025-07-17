@@ -7,6 +7,7 @@ import notification.services
 from likes.api.serializers import LikeSerializerForCreate, LikeSerializer, LikeSerializerForDelete
 from likes.models import Like
 from utils.decorator import require_all_params
+from utils.rate_limiter import rate_limit
 
 
 class LikeViewSet(GenericViewSet):
@@ -15,6 +16,7 @@ class LikeViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated, ]
 
     @require_all_params(request_attr='data', params=['content_type', 'content_id'])
+    @rate_limit('1/s', key_func=lambda r: r.user.id)
     def create(self, request, *args, **kwargs):
         serializer = LikeSerializerForCreate(data=request.data, context={'request': request})
         if not serializer.is_valid():
@@ -26,6 +28,7 @@ class LikeViewSet(GenericViewSet):
 
     @require_all_params(params=['content_type', 'content_id'], request_attr='data')
     @action(methods=['delete'], detail=False)
+    @rate_limit('1/s', key_func=lambda r: r.user.id)
     def delete(self, request, **kwargs):
         data = request.data
         serializer = LikeSerializerForDelete(data=data, context={'request': request})

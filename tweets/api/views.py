@@ -9,6 +9,7 @@ from tweets.models import Tweet
 from utils.decorator import require_all_params
 from utils.pagination import CustomEndlessPagination
 from tweets.services import TweetService
+from utils.rate_limiter import rate_limit
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -22,6 +23,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         return [permissions.IsAuthenticated()]
 
     @require_all_params(params=['user_id'])
+    @rate_limit('3/s')
     def list(self, request):
         cached_tweets = TweetService.get_cached_tweets(user_id = request.query_params['user_id'])
         page = self.paginator.paginated_cached_list(cached_tweets, request)
@@ -32,6 +34,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         serializer = TweetSerializer(page, context = {'request': request}, many = True)
         return self.get_paginated_response(data=serializer.data)
 
+    @rate_limit('3/s')
     def create(self, request):
         serializer = TweetSerializerForCreate(data=request.data, context={'request': request})
         if not serializer.is_valid():
@@ -48,6 +51,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             'user': UserSerializerForTweetResponse(User.objects.get(id=tweet.user.id)).data,
         }, status=201)
 
+    @rate_limit('3/s')
     def retrieve(self, request, pk=None):
         tweet = self.get_object()
         if not 'comment_limit' in request.query_params:
@@ -62,6 +66,7 @@ class TweetViewSet(viewsets.GenericViewSet):
             return Response(
                 TweetSerializerWithDetails(tweet, context={'limit': comment_limit, 'request': request}).data)
 
+    @rate_limit('3/s')
     def destroy(self, request, pk=None):
         tweet = self.get_object()
         tweet.delete()

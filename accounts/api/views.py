@@ -12,6 +12,7 @@ from accounts.api.serializers import UserSerializer, LoginSerializer, SignupSeri
     UserSerializerWithProfile
 from accounts.models import UserProfile
 from utils.permissions import IsOwner, IsSuperUser
+from utils.rate_limiter import rate_limit
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -24,6 +25,7 @@ class AccountViewSet(viewsets.ViewSet):
     serializer_class = LoginSerializer
 
     @action(detail=False, methods=['get'])
+    @rate_limit('3/s')
     def login_status(self, request):
         return_data = {'has_logged_in': request.user.is_authenticated}
         if request.user.is_authenticated:
@@ -32,11 +34,13 @@ class AccountViewSet(viewsets.ViewSet):
         return Response(return_data)
 
     @action(detail=False, methods=['post'])
+    @rate_limit('3/s')
     def logout(self, request):
         django_logout(request)
         return Response({'success': True})
 
     @action(detail=False, methods=['post'])
+    @rate_limit('3/s')
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
@@ -69,6 +73,7 @@ class AccountViewSet(viewsets.ViewSet):
                          'user': UserSerializer(user).data})
 
     @action(detail=False, methods=['post'], serializer_class=SignupSerializer)
+    @rate_limit('3/s')
     def signup(self, request):
 
         serializer = SignupSerializer(data=request.data)

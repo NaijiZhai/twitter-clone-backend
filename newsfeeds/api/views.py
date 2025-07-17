@@ -5,6 +5,7 @@ from newsfeeds.api.serializers import NewsFeedSerializer
 from newsfeeds.models import NewsFeed
 from utils.pagination import CustomEndlessPagination
 from newsfeeds.services import NewsFeedService
+from utils.rate_limiter import rate_limit
 
 
 class NewsFeedViewSet(viewsets.GenericViewSet):
@@ -12,6 +13,7 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
     pagination_class = CustomEndlessPagination
     queryset = NewsFeed.objects.all()
 
+    @rate_limit('10/s')
     def list(self, request):
         cached_newsfeeds = NewsFeedService.get_cached_newsfeed(user_id = request.user.id)
         page = self.paginator.paginated_cached_list(cached_newsfeeds, request)

@@ -9,6 +9,7 @@ from newsfeeds.services import NewsFeedService
 from utils.auth import CsrfExemptSessionAuthentication
 from utils.decorator import require_all_params, require_any_params
 from utils.pagination import CustomPagination
+from utils.rate_limiter import rate_limit
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -44,6 +45,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         return FollowingSerializer
 
     @require_any_params(params=['from_user_id', 'to_user_id',])
+    @rate_limit('3/s')
     def list(self, request):
         page = self.paginate_queryset(self.get_queryset())
         serializer = self.get_serializer(page, many=True)
@@ -51,6 +53,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         return self.get_paginated_response({key: serializer.data})
 
     @require_all_params(params=['from_user_id', 'to_user_id', ], request_attr='data')
+    @rate_limit('3/s')
     def create(self, request):
         if Friendship.objects.filter(from_user_id=request.data['from_user_id'],
                                      to_user_id=request.data['to_user_id']).exists():
@@ -64,6 +67,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
 
     @require_all_params(params=['from_user_id', 'to_user_id', ])
     @action(methods=['delete'], detail=False, url_path='remove')
+    @rate_limit('3/s')
     def delete(self, request, **kwargs):
         query_params = request.query_params
         is_deleted, _ = Friendship.objects.filter(from_user_id=query_params['from_user_id'],

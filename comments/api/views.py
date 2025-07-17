@@ -33,7 +33,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 
-
+    @rate_limit('3/m', key_func=lambda r: r.user.id)
     def create(self, request, *args, **kwargs):
 
         data = {
@@ -51,6 +51,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             status=201
         )
 
+    @rate_limit('3/s', key_func=lambda r: r.user.id)
     def update(self, request, *args, **kwargs):
         serializer = CommentSerializerForUpdate(instance=self.get_object(), data=request.data)
         if not serializer.is_valid():
@@ -63,6 +64,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             'message': 'successfully update'
         }, status=200)
 
+    @rate_limit('3/s', key_func=lambda r: r.user.id)
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
         comment.delete()
