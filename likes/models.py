@@ -15,9 +15,22 @@ class Like(models.Model):
     target = GenericForeignKey('content_type', 'content_id')
 
     class Meta:
-        unique_together = (('user', 'content_type', 'content_id'),)
-        index_together = (('content_type', 'content_id', 'created_at'),
-                          ('user', 'content_type', 'content_id', 'created_at'))
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'content_type', 'content_id'],
+                name='unique_user_content_like'
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=['content_type', 'content_id', 'created_at'],
+                name='idx_ct_id_created_at'
+            ),
+            models.Index(
+                fields=['user', 'content_type', 'content_id', 'created_at'],
+                name='idx_user_ct_id_created_at'
+            )
+        ]
 
     def __str__(self):
         return f'{self.user} likes {self.target} at {self.created_at}'

@@ -19,7 +19,9 @@ class Comment(models.Model):
 
 
     class Meta:
-        index_together = (('tweet', 'created_at'),)
+        indexes = [
+            models.Index(fields=['tweet', 'created_at'], name='idx_tweet_created_at'),
+        ]
 
     @property
     def like_set(self):

@@ -71,12 +71,12 @@ class TweetPhoto(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        index_together = [
-            ('tweet', 'order'),# most common pattern
-            ('user', 'created_at'),# querying all photos by a user in chronological order
-            ('tweet', 'status', 'has_deleted'),  # combined filter for tweet photos
-            ('status', 'created_at'),  # for admin dashboard queries
-            ('has_deleted', 'created_at'), # for recycle
+        indexes = [
+            models.Index(fields=['tweet', 'order'], name='idx_tweet_order'),
+            models.Index(fields=['user', 'created_at'], name='idx_user_created'),
+            models.Index(fields=['tweet', 'status', 'has_deleted'], name='idx_tweet_status_deleted'),
+            models.Index(fields=['status', 'created_at'], name='idx_status_created'),
+            models.Index(fields=['has_deleted', 'created_at'], name='idx_deleted_created'),
         ]
 
     def __str__(self):

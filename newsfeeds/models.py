@@ -17,7 +17,9 @@ class NewsFeed(models.Model):
             models.Index(fields=['user', 'created_at']),
             models.Index(fields=['created_at']),
         ]
-        unique_together = ('user', 'tweet')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'tweet'], name='unique_user_tweet')
+        ]
 
     def __str__(self):
         return f'NewsFeed with content {self.tweet} by {self.user} at {self.created_at}'

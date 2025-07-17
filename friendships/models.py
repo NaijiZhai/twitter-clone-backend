@@ -17,8 +17,16 @@ class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (('from_user', 'to_user'),)
-        index_together = (('from_user', 'created_at'),('to_user', 'created_at'))
+        constraints = [
+            models.UniqueConstraint(
+                fields=['from_user', 'to_user'],
+                name='unique_from_to_user'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['from_user', 'created_at'], name='idx_from_user_created'),
+            models.Index(fields=['to_user', 'created_at'], name='idx_to_user_created'),
+        ]
 
     def __str__(self):
         return f'{self.from_user.username} follows {self.to_user.username} starting from {self.created_at}'
