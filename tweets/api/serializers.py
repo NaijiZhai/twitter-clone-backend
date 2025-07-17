@@ -90,7 +90,7 @@ class TweetSerializerWithDetails(TweetSerializer):
 
     class Meta:
         model = Tweet
-        fields = ('id', 'user', 'content', 'created_at', 'comments', 'likes', 'like_count', 'comment_count',
+        fields = ('id', 'user', 'content', 'created_at', 'updated_at','comments', 'likes', 'like_count', 'comment_count',
                   'has_liked','photo_urls')
 
     def get_comments(self, obj):
