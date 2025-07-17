@@ -1,6 +1,8 @@
 # Twitter Clone Project
 
-A Django-based Twitter clone project that implements core social media platform features,
+This project is a Twitter-style social media platform developed using Django 5.2.4. It includes core functionalities
+such as tweet posting, following/follower relationships, news feeds, and notification support, all implemented with
+modern Django best practices.
 
 ## References
 
@@ -229,10 +231,10 @@ tweet.likes_count  # Direct field access and cached fields
 
 ## Tech Stack
 
-- **Framework**: Django 4.2.21
+- **Framework**: Django 5.2.4
 - **RestFrameWork**: Django REST Framework 3.16.0
 - **Storage**: Amazon S3 for production, MinIO used during early-stage/local development
-- **Database**: MySQL (transactional), Apache HBase (for newsfeeds/friendships)
+- **Database**: MySQL
 - **Cache**: Redis
 - **Async Tasks**: Celery
 - **Message Queue**: Amazon SQS
