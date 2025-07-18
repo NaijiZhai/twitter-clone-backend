@@ -18,8 +18,10 @@ class FriendshipServices(object):
     @classmethod
     def get_following_id_set(cls, user_id):
         cache_key = FOLLOWING_PATTERN.format(user_id=user_id)
-        if cache.get(cache_key):
-            return cache.get(cache_key)
+        cached_result = cache.get(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         following_id_set = set(
             Friendship.objects.filter(from_user_id=user_id).values_list('to_user_id', flat=True))
         cache.set(cache_key, following_id_set)

@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,9 +22,12 @@ class LikeViewSet(GenericViewSet):
         serializer = LikeSerializerForCreate(data=request.data, context={'request': request})
         if not serializer.is_valid():
             return Response({'errors': serializer.errors}, status=400)
-        like, _is_created = serializer.get_or_create()
-        if  _is_created:
-            notification.services.NotificationService.send_like_notification(like)
+
+        with transaction.atomic():
+            like, _is_created = serializer.get_or_create()
+            if _is_created:
+                notification.services.NotificationService.send_like_notification(like)
+
         return Response({'success': True, 'data': LikeSerializer(like).data}, status=201)
 
     @require_all_params(params=['content_type', 'content_id'], request_attr='data')

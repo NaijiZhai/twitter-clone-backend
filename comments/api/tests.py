@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.utils import timezone
 
+from cache_utils.redis_helper import RedisHelper
 from comments.models import Comment
 # Create your tests here.
 from testing.testcases import TestCase
@@ -160,12 +161,16 @@ class CommentApiTests(TestCase):
 
         # test tweet list api
         self.create_comment(self.zhai, tweet)
+        RedisHelper.refresh_count(tweet, 'comments_count')
         response = self.zhou_client.get(TWEET_LIST_API, {'user_id': self.zhai.id})
         self.assertEqual(response.status_code, 200)
+
         self.assertEqual(response.data['results'][0]['comment_count'], 1)
+
 
         # test newsfeeds list api
         self.create_comment(self.zhou, tweet)
+        RedisHelper.refresh_count(tweet, 'comments_count')
         self.create_newsfeed(self.zhou, tweet)
         response = self.zhou_client.get(NEWSFEED_LIST_API)
         self.assertEqual(response.status_code, 200)

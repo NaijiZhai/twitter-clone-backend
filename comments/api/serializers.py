@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializer, UserSerializerForComment
+from cache_utils.redis_helper import RedisHelper
 from comments.models import Comment
 from likes.services import LikeService
 from tweets.models import Tweet
@@ -20,7 +21,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return LikeService.has_user_liked(self.context['request'].user, obj)
 
     def get_like_count(self, obj):
-        return obj.like_set.count()
+        return RedisHelper.get_count(obj, 'likes_count')
 
 
 class CommentSerializerForCreate(serializers.ModelSerializer):
@@ -37,7 +38,6 @@ class CommentSerializerForCreate(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        print(validated_data)
         return Comment.objects.create(**validated_data)
 
 
@@ -65,4 +65,4 @@ class CommentSerializerForList(serializers.ModelSerializer):
     def get_has_liked(self, obj):
         return LikeService.has_user_liked(self.context['request'].user, obj)
     def get_like_count(self, obj):
-        return obj.like_set.count()
+        return RedisHelper.get_count(obj, 'likes_count')

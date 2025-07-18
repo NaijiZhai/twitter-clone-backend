@@ -88,36 +88,60 @@ class RedisHelper:
     def get_key_for_count(cls, obj, attr):
         return f"{obj.__class__.__name__}.{attr}:{obj.id}"
 
-    @classmethod
-    def increment_count(cls, obj, attr):
-        key = cls.get_key_for_count(obj, attr)
-        conn = RedisClient.get_connection()
-        if not conn.exists(key):
-            obj.refresh_from_db()
-            conn.set(key, getattr(obj, attr))
-            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
-            # increment has been made in db.
-            return getattr(obj, attr)
-        return conn.incr(key)
-
-    @classmethod
-    def decrement_count(cls, obj, attr):
-        key = cls.get_key_for_count(obj, attr)
-        conn = RedisClient.get_connection()
-        if not conn.exists(key):
-            obj.refresh_from_db()
-            conn.set(key, getattr(obj, attr))
-            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
-            return getattr(obj, attr)
-        return conn.decr(key)
+    # @classmethod
+    # def increment_count(cls, obj, attr, already_incremented_in_db = False):
+    #     key = cls.get_key_for_count(obj, attr)
+    #     conn = RedisClient.get_connection()
+    #     if not conn.exists(key):
+    #         obj.refresh_from_db()
+    #         conn.set(key, getattr(obj, attr))
+    #         conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+    #         # increment has been made in db.
+    #         return getattr(obj, attr)
+    #     return conn.incr(key)
+    #
+    # @classmethod
+    # def decrement_count(cls, obj, attr, already_decremented_in_db = False):
+    #     key = cls.get_key_for_count(obj, attr)
+    #     conn = RedisClient.get_connection()
+    #     if not conn.exists(key):
+    #         obj.refresh_from_db()
+    #         conn.set(key, getattr(obj, attr))
+    #         conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+    #         return getattr(obj, attr)
+    #     return conn.decr(key)
 
     @classmethod
     def get_count(cls, obj, attr):
         key = cls.get_key_for_count(obj, attr)
         conn = RedisClient.get_connection()
-        if not conn.exists(key):
+
+        # use pipeline
+        with conn.pipeline() as pipe:
+            pipe.get(key)
+            pipe.ttl(key)
+            value, ttl = pipe.execute()
+
+        if value is None:
+
             obj.refresh_from_db()
-            conn.set(key, getattr(obj, attr))
+            db_value = getattr(obj, attr, 0)
+
+
+            conn.setex(key, cache_constants.REDIS_KEY_EXPIRE_TIME, db_value)
+            return db_value
+
+
+        if 0 < ttl < 3600:
             conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
-            return getattr(obj, attr)
-        return int(conn.get(key))
+
+        return int(value)
+
+    @classmethod
+    def refresh_count(cls, obj, attr):
+
+        key = cls.get_key_for_count(obj, attr)
+        conn = RedisClient.get_connection()
+        obj.refresh_from_db()
+        conn.setex(key, cache_constants.REDIS_KEY_EXPIRE_TIME, getattr(obj, attr))
+        return getattr(obj, attr)
