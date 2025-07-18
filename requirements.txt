@@ -29,6 +29,7 @@ cryptography==44.0.1
 distro==1.9.0
 Django==5.2.4
 django-debug-toolbar==4.4.6
+django-environ==0.12.0
 django-filter==25.1
 django-model-utils==5.0.0
 django-notifications-hq @ git+https://github.com/django-notifications/django-notifications.git@4c44bcea2504d9a3fcd26366b232a13732a08f2a
@@ -46,7 +47,7 @@ jmespath==1.0.1
 jsonfield==3.1.0
 kombu==5.5.4
 mysqlclient==2.1.1
-openai==1.81.0
+openai==1.97.0
 packaging==25.0
 ply==3.11
 prompt_toolkit==3.0.51

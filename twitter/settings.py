@@ -264,3 +264,24 @@ RATELIMIT_REDIS_HOST = 'localhost'
 RATELIMIT_REDIS_PORT = 6379
 RATELIMIT_REDIS_DB = 11
 RATELIMIT_ENABLE = not TESTING
+
+
+import environ
+import os
+
+env = environ.Env()
+
+environ.Env.read_env()
+
+OPENAI_API_KEY = env('OPENAI_API_KEY', default='your-api-key-here')
+
+
+# custom thresholds
+CONTENT_MODERATION_THRESHOLDS = {
+    'hate': 0.6,
+    'harassment': 0.7,
+    'violence': 0.8,
+    'self-harm': 0.5,
+    'sexual': 0.7,
+    'sexual/minors': 0.3,
+}

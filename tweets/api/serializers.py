@@ -1,4 +1,3 @@
-from openai import OpenAI
 from rest_framework import serializers
 
 from accounts.api.serializers import UserSerializerForTweetResponse, UserSerializer, UserSerializerWithProfile
@@ -8,27 +7,24 @@ from likes.api.serializers import LikeSerializer
 from likes.services import LikeService
 from tweets.models import Tweet
 from tweets.services import TweetService
+from tweets.content_moderation import content_moderation  # Import content moderation service
 
 
 class TweetSerializerForCreate(serializers.ModelSerializer):
     content = serializers.CharField(max_length=140, min_length=6)
-    photos = serializers.ListField(child=serializers.FileField(), required=False,allow_empty=True)
+    photos = serializers.ListField(child=serializers.FileField(), required=False, allow_empty=True)
 
     class Meta:
         model = Tweet
-        fields = ('content','photos')
+        fields = ('content', 'photos')
 
     def validate(self, data):
         content = data['content']
-        response = OpenAI(api_key=('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
-                                   'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j3'
-                                   '80bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
-            input=content,
-        )
-        if response.results[0].flagged:
-            raise serializers.ValidationError('Harmful content！')
 
-        photos = data.get('photos',[])
+        # Use independent content moderation service
+        content_moderation.validate_content(content)
+
+        photos = data.get('photos', [])
         if len(photos) > 4:
             raise serializers.ValidationError('Too many photos')
 
@@ -44,7 +40,7 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
 
 
 class TweetSerializer(serializers.ModelSerializer):
-    user = UserSerializerForTweetResponse(source='cached_user',read_only=True)
+    user = UserSerializerForTweetResponse(source='cached_user', read_only=True)
     has_liked = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     like_count = serializers.SerializerMethodField()
@@ -71,12 +67,10 @@ class TweetSerializer(serializers.ModelSerializer):
     def get_comment_count(self, obj):
         return RedisHelper.get_count(obj, 'comments_count')
 
-
     def get_like_count(self, obj):
         return RedisHelper.get_count(obj, 'likes_count')
-        # return obj.like_set.count()
 
-    def get_photo_urls(self,obj):
+    def get_photo_urls(self, obj):
         photo_urls = []
         for photo in obj.tweetphoto_set.all():
             photo_urls.append(photo.file.url)
@@ -90,8 +84,8 @@ class TweetSerializerWithDetails(TweetSerializer):
 
     class Meta:
         model = Tweet
-        fields = ('id', 'user', 'content', 'created_at', 'updated_at','comments', 'likes', 'like_count', 'comment_count',
-                  'has_liked','photo_urls')
+        fields = ('id', 'user', 'content', 'created_at', 'updated_at', 'comments', 'likes', 'like_count',
+                  'comment_count', 'has_liked', 'photo_urls')
 
     def get_comments(self, obj):
         limit = self.context.get('limit', None)
@@ -113,14 +107,9 @@ class TweetSerializerForUpdate(serializers.ModelSerializer):
 
     def validate(self, data):
         content = data['content']
-        # 同样进行内容审核
-        response = OpenAI(api_key=('sk-proj-40fHvTGAz_JNcwsoiWbcl9Bx1YM0u2yn6jaLQZ-jmVE9sfFt74k9'
-                                   'JSMUgBXawbFdiufGG5pVr6T3BlbkFJ-oEJBpwg700nkbnJqlSjacXaPd9hmz5Uv6a51dK-C_j3'
-                                   '80bTrkXhaJc8AjXAjeh0IhXbUjjBMA')).moderations.create(
-            input=content,
-        )
-        if response.results[0].flagged:
-            raise serializers.ValidationError('Harmful content！')
+
+        # Use independent content moderation service
+        content_moderation.validate_content(content)
 
         return data
 

@@ -2,7 +2,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 
 from cache_utils.redis_client import RedisClient
-from cache_utils.redis_helper import RedisHelper
 from testing.testcases import TestCase
 from tweets.models import Tweet, TweetPhoto
 from tweets.services import TweetService
@@ -11,6 +10,7 @@ from utils.pagination import CustomEndlessPagination
 TWEET_LIST_API = '/api/tweets/'
 TWEET_CREATE_API = '/api/tweets/'
 TWEET_RETRIEVE_API = '/api/tweets/{}/'
+
 
 class TweetApiTests(TestCase):
 
@@ -88,7 +88,6 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(TweetPhoto.objects.count(), 0)
 
-
         file = SimpleUploadedFile(
             name='selfie.jpg',
             content=str.encode('a fake image'),
@@ -162,10 +161,9 @@ class TweetApiTests(TestCase):
 
         # tweet include all details
         profile = self.zhai.profile
-        print(response.data)
         self.assertEqual(response.data['user']['nickname'], profile.nickname)
         self.assertEqual(response.data['user']['avatar_url'], None)
-    
+
     def test_pagination(self):
         page_size = CustomEndlessPagination.page_size
 
@@ -212,3 +210,11 @@ class TweetApiTests(TestCase):
         self.assertEqual(response.data['has_next_page'], False)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['id'], new_tweet.id)
+
+    def test_moderation_threshold(self):
+        response = self.zhai_client.post(TWEET_CREATE_API, {
+            'content': 'fuck you, you fucking cunt',
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(str(response.data['error']['non_field_errors'][0]), 'Content contains harassment')
+        # self.assertEqual(Tweet.objects.all().order_by('-created_at').first().content, 'fuck you, you fucking cunt')
