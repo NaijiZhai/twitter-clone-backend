@@ -9,7 +9,12 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import environ
+import os
 
+env = environ.Env()
+
+environ.Env.read_env()
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,13 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^dxa9^(t&g1)xfchiaz537kis^20ntcn8mhrl4yy$(mx901m*w'
+SECRET_KEY = env('SECRET_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', '192.168.33.10', 'localhost']
-INTERNAL_IPS = ['10.0.2.2']
+ALLOWED_HOSTS = ['*']
+# INTERNAL_IPS = ['10.0.2.2']
 
 # Application definition
 
@@ -39,7 +45,7 @@ INSTALLED_APPS = [
 
     #third party apps
     'rest_framework',
-    "debug_toolbar",
+    # "debug_toolbar",
     'django_filters',
     'notifications',
     
@@ -65,7 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'twitter.urls'
@@ -266,12 +272,7 @@ RATELIMIT_REDIS_DB = 11
 RATELIMIT_ENABLE = not TESTING
 
 
-import environ
-import os
 
-env = environ.Env()
-
-environ.Env.read_env()
 
 OPENAI_API_KEY = env('OPENAI_API_KEY', default='your-api-key-here')
 
