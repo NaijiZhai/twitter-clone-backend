@@ -1,6 +1,6 @@
 # Twitter Clone Project
 
-This project is a Twitter-style social media platform developed using Django 5.2.4. It includes core functionalities
+This project is a Twitter-style social media platform Backend developed using Django 5.2.4. It includes core functionalities
 such as tweet posting, following/follower relationships, news feeds, and notification support, all implemented with
 modern Django best practices.
 
