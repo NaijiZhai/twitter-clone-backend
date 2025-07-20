@@ -1,11 +1,11 @@
 # Twitter Clone Project
 
-This project is a Twitter-style social media platform backend developed using Django 5.2.4. It includes core functionalities
+This project is a Twitter-style social media platform backend developed using Django 5.2.4. It includes core
+functionalities
 such as tweet posting, following/follower relationships, news feeds, and notification support, all implemented with
 modern Django best practices.
 
 See the demo on https://twitterapi.naijizhai.com/
-
 
 ## Project Overview
 
@@ -23,7 +23,6 @@ This project replicates essential features of Twitter using Django, optimized fo
 - **Async Tasks**: Celery
 - **Message Queue**: Amazon SQS
 - **Python Version**: 3.10.11
-
 
 ### Core Functionality
 
@@ -283,8 +282,6 @@ tweet.likes_count  # Direct field access and cached fields
 
 ```
 
-
-
 ## Installation and Setup
 
 ### 1. Environment Setup
@@ -303,19 +300,47 @@ pip install -r requirements.txt
 
 ```
 
-### 2. Database Setup
+### 2.Change Settings and env
+
+#### Set allowed host
+
+##### Change this to *
+
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['*']
+
+#### Set DEBUG = True
+
+DEBUG = False
+
+#### Set up Message Queue and Storage
+
+See details in https://django-storages.readthedocs.io/en/latest/
+and https://docs.celeryq.dev/en/stable/
+
+#### Set up .env in ./twitter
+OPENAI_API_KEY = 
+SECRET_KEY='your-django-secret-key'
+
+
+The `OPENAI_API_KEY` is required for content moderation checks. Please be aware that using this key might incur costs
+according to OpenAI's pricing; it is **not free**.  
+You need to obtain your own API key from [OpenAI](https://platform.openai.com/account/api-keys) and set it in your
+environment or configuration file.
+
+You can generate a secure Django secret key using:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe())"
+```
+
+### 3. Database Setup
 
 #### MySQL Configuration
 
 1. **Start MySQL service**
 
-#### macOS
-
-brew services start mysql
-
-#### Ubuntu/Debian
-
-sudo systemctl start mysql sudo systemctl enable mysql
+sudo systemctl start; mysql sudo systemctl enable mysql
 
 2. **Create database and user**
 
@@ -323,33 +348,24 @@ sudo systemctl start mysql sudo systemctl enable mysql
 
 mysql -u root -p
 
-#### Create database
+#### Create database(change if you don't want to use root)
 
-CREATE DATABASE twitter_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-#### Create user and grant privileges
-
-CREATE USER 'twitter_user'@'localhost' IDENTIFIED BY 'your_secure_password'; GRANT ALL PRIVILEGES ON twitter_db.* TO '
-twitter_user'@'localhost'; FLUSH PRIVILEGES; EXIT;
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
+FLUSH PRIVILEGES;
+CREATE DATABASE IF NOT EXISTS twitter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 3. **Configure Django settings**
 
 #### In twitter/settings.py
 
-DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter_db', 'USER': 'twitter_user', '
-PASSWORD': 'your_secure_password', 'HOST': 'localhost', 'PORT': '3306', 'OPTIONS': { 'charset': 'utf8mb4', } } }
+DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter', 'USER': 'root', '
+PASSWORD': 'yourpassword', 'HOST': 'localhost', 'PORT': '3306', } }
 
-### 3. Redis Setup
+### 4. Redis Setup
 
 1. **Start Redis service**
 
-#### macOS
-
-brew services start redis
-
-#### Ubuntu/Debian
-
-sudo systemctl start redis-server sudo systemctl enable redis-server
+sudo systemctl start redis-server; sudo systemctl enable redis-server
 
 2. **Test Redis connection**
    bash redis-cli ping
@@ -365,13 +381,12 @@ OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
 
 #### Celery configuration
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
 
-### 4. Django Project Setup
+### 5. Django Project Setup
 
 #### Create database migrations
 
-python manage.py makemigrations
 ####Apply migrations
 python manage.py migrate
 ####Create superuser
@@ -397,8 +412,6 @@ python manage.py runserver
 
 celery -A twitter worker -l info
 
-
-
 ## Development Guide
 
 ### Testing
@@ -414,17 +427,6 @@ python manage.py test tweets
 python manage.py test -v2
 ```
 
-### Code Standards
-
-- Follow PEP 8 coding style
-- Use Django best practices
-- Write unit tests and integration tests
-
-### Performance Optimization
-
-- Use select_related and prefetch_related for database query optimization
-- Implement caching strategies to reduce database load
-- Use database indexes for improved query performance
 
 ## Deployment
 
@@ -433,10 +435,9 @@ python manage.py test -v2
 1. Set environment variables
 2. Configure database connection
 3. Set up Redis cache
-4. Configure Celery task queue
-5. Use Gunicorn as WSGI server
-6. Configure Nginx as reverse proxy
-
+4. Set up AWS S3 and SQS(or use your own replacement)
+5. Configure Celery task queue
+6. Use Gunicorn as WSGI server
 
 ## References
 
@@ -445,9 +446,6 @@ python manage.py test -v2
 - [vBubbaa/django‑twitter] – A Django Twitter clone with full user system, AJAX-powered tweets, likes, comments, and
   follow features.
 - [ArJSarmiento/Twitter‑Clone‑Django] – Responsive Twitter clone on Django 3.2 including editing, likes, and follows.
-
-
-
 
 ## License
 
