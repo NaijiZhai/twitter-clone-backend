@@ -302,7 +302,8 @@ pip install -r requirements.txt
 Change this to `*` for development:
 
 ```
-ALLOWED_HOSTS = ['*'] CSRF_TRUSTED_ORIGINS = ['*']
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['*']
 ``` 
 
 #### Set DEBUG
@@ -352,13 +353,12 @@ python -c "import secrets; print(secrets.token_urlsafe())"
 1. **Start MySQL service**
 
 ```
-sudo systemctl start mysql; sudo systemctl enable mysql
+systemctl start mysql; sudo systemctl enable mysql
 ``` 
 
 2. **Create database and user**
 
 ```
-bash
 # Login to MySQL
 mysql -u root -p
 # Create database (change if you don't want to use root)
@@ -401,7 +401,6 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://
 ### 5. Django Project Setup
 
 ```
-bash
 # Create database migrations
 python manage.py makemigrations
 # Apply migrations
@@ -415,7 +414,6 @@ python manage.py createsuperuser
 ### Start All Services
 
 ```
-bash
 # Start MySQL
 sudo systemctl start mysql
 # Start Redis
@@ -431,7 +429,6 @@ celery -A twitter worker -l info
 ### Testing
 
 ```
-bash
 # Run tests
 python manage.py test
 # Run specific app tests
