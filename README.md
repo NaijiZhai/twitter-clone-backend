@@ -302,7 +302,7 @@ pip install -r requirements.txt
 Change this to `*` for development:
 
 ```
-python ALLOWED_HOSTS = ['*'] CSRF_TRUSTED_ORIGINS = ['*']
+ALLOWED_HOSTS = ['*'] CSRF_TRUSTED_ORIGINS = ['*']
 ``` 
 
 #### Set DEBUG
@@ -310,13 +310,13 @@ python ALLOWED_HOSTS = ['*'] CSRF_TRUSTED_ORIGINS = ['*']
 For development:
 
 ```
-python DEBUG = True
+DEBUG = True
 ``` 
 
 For production:
 
 ```
-python DEBUG = False
+DEBUG = False
 ``` 
 
 #### Set up Message Queue and Storage
@@ -331,7 +331,8 @@ See details in:
 Create a `.env` file in the `./twitter` directory with:
 
 ```
-env OPENAI_API_KEY=your-openai-api-key SECRET_KEY=your-django-secret-key
+OPENAI_API_KEY=your-openai-api-key
+SECRET_KEY=your-django-secret-key
 ``` 
 
 **Note**: The `OPENAI_API_KEY` is required for content moderation checks. Please be aware that using this key might
@@ -351,7 +352,7 @@ bash python -c "import secrets; print(secrets.token_urlsafe())"
 1. **Start MySQL service**
 
 ```
-bash sudo systemctl start mysql sudo systemctl enable mysql
+bash sudo systemctl start mysql; sudo systemctl enable mysql
 ``` 
 
 2. **Create database and user**
@@ -369,7 +370,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpass
 In `twitter/settings.py`:
 
 ```
-python DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter', 'USER': 'root', 'PASSWORD': 'yourpassword', 'HOST': 'localhost', 'PORT': '3306', } }
+DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter', 'USER': 'root', 'PASSWORD': 'yourpassword', 'HOST': 'localhost', 'PORT': '3306', } }
 ``` 
 
 ### 4. Redis Setup
@@ -377,7 +378,7 @@ python DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 
 1. **Start Redis service**
 
 ```
-bash sudo systemctl start redis-server sudo systemctl enable redis-server
+bash sudo systemctl start redis-server; sudo systemctl enable redis-server
 ``` 
 
 2. **Test Redis connection**
