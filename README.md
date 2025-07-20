@@ -4,6 +4,8 @@ This project is a Twitter-style social media platform backend developed using Dj
 such as tweet posting, following/follower relationships, news feeds, and notification support, all implemented with
 modern Django best practices.
 
+See the demo on https://twitterapi.naijizhai.com/
+
 ## References
 
 - [redianmarku/Django‑Twitter‑Clone] – A fully functional Twitter-like application built with Django, including user
