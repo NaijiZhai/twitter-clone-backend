@@ -342,7 +342,7 @@ from [OpenAI](https://platform.openai.com/account/api-keys) and set it in your e
 You can generate a secure Django secret key using:
 
 ```
-bash python -c "import secrets; print(secrets.token_urlsafe())"
+python -c "import secrets; print(secrets.token_urlsafe())"
 ``` 
 
 ### 3. Database Setup
@@ -352,7 +352,7 @@ bash python -c "import secrets; print(secrets.token_urlsafe())"
 1. **Start MySQL service**
 
 ```
-bash sudo systemctl start mysql; sudo systemctl enable mysql
+sudo systemctl start mysql; sudo systemctl enable mysql
 ``` 
 
 2. **Create database and user**
@@ -378,13 +378,13 @@ DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitte
 1. **Start Redis service**
 
 ```
-bash sudo systemctl start redis-server; sudo systemctl enable redis-server
+sudo systemctl start redis-server; sudo systemctl enable redis-server
 ``` 
 
 2. **Test Redis connection**
 
 ```
-bash redis-cli ping
+bredis-cli ping
 # Should return: PONG
 ``` 
 
@@ -393,7 +393,7 @@ bash redis-cli ping
 In `twitter/settings.py`:
 
 ```
-python CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
+CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
 # Celery configuration
 CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
 ``` 
