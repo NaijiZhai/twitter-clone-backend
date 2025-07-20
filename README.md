@@ -6,19 +6,24 @@ modern Django best practices.
 
 See the demo on https://twitterapi.naijizhai.com/
 
-## References
-
-- [redianmarku/Django‑Twitter‑Clone] – A fully functional Twitter-like application built with Django, including user
-  auth, tweets, follows, and likes.
-- [vBubbaa/django‑twitter] – A Django Twitter clone with full user system, AJAX-powered tweets, likes, comments, and
-  follow features.
-- [ArJSarmiento/Twitter‑Clone‑Django] – Responsive Twitter clone on Django 3.2 including editing, likes, and follows.
 
 ## Project Overview
 
 This project replicates essential features of Twitter using Django, optimized for learning and scalability
 
 ## Features
+
+### Tech Stack
+
+- **Framework**: Django 5.2.4
+- **RestFrameWork**: Django REST Framework 3.16.0
+- **Storage**: Amazon S3 for production, MinIO used during early-stage/local development
+- **Database**: MySQL
+- **Cache**: Redis
+- **Async Tasks**: Celery
+- **Message Queue**: Amazon SQS
+- **Python Version**: 3.10.11
+
 
 ### Core Functionality
 
@@ -47,6 +52,53 @@ This project replicates essential features of Twitter using Django, optimized fo
 - **Database Indexing** - Optimized query performance
 - **API Design** - Standardized API design with clear endpoints and responses.
 - **File Upload** - Supports image uploads, utilizing Amazon S3 (production) and MinIO (development).
+
+## API Endpoints
+
+### User Related
+
+- `/admin` - Django administration
+- `POST /api/accounts/signup/` - User registration
+- `POST /api/accounts/login/` - User login
+- `POST /api/accounts/logout/` - User logout
+- `GET /api/accounts/login_status/` - Get login status
+- `PUT /api/profiles/<pk>/` - Update User profile
+
+### Tweet Related
+
+- `GET /api/tweets/` - Get tweet list (will contain details)
+- `POST /api/tweets/` - Create tweet
+- `GET /api/tweets/<pk>/?comment_limit` - Get a specific tweet(comment_limit is an optional argument)
+- `DELETE /api/tweets/<id>/` - Delete tweet
+
+### Friendship Related
+
+- `GET /api/friendships/?from_user_id=?` - Get following list
+- `GET /api/friendships/?to_user_id=?` - Get followers list
+- `POST /api/friendships/?from_user_id=?&to_user_id=?` - Follow user
+- `DELETE /api/friendships/remove/?from_user_id=?&to_user_id=?` - Unfollow user
+
+### Like Related
+
+- `POST /api/likes/` - Like content(require params=['content_type', 'content_id'], content_type
+  includes ['Tweet', 'Comment'])
+- `DELETE /api/likes/` - Unlike content(require params=['content_type', 'content_id'], content_type
+  includes ['Tweet', 'Comment'])
+
+### Comment Related
+
+- `GET /api/comments/?tweet_id=?` - Get comment list of a tweet
+- `POST /api/comments/` - Post comment(require params = ['user_id','tweet_id','content'])
+
+### NewsFeed Related
+
+- `GET /api/newsfeeds/` - Get newsfeeds of the current user
+
+### Notification Related
+
+- `GET /api/notifications/unread-count/` - Get unread count of the notifications of the current user
+- `POST /api/notifications/mark-all-as-read/` - Mark all unread notifications of the current user as read
+- `PUT /api/notifications/<pk>/` - Update a certain notification as read or unread
 
 ## Project Structure
 
@@ -231,16 +283,7 @@ tweet.likes_count  # Direct field access and cached fields
 
 ```
 
-## Tech Stack
 
-- **Framework**: Django 5.2.4
-- **RestFrameWork**: Django REST Framework 3.16.0
-- **Storage**: Amazon S3 for production, MinIO used during early-stage/local development
-- **Database**: MySQL
-- **Cache**: Redis
-- **Async Tasks**: Celery
-- **Message Queue**: Amazon SQS
-- **Python Version**: 3.10.11
 
 ## Installation and Setup
 
@@ -248,8 +291,8 @@ tweet.likes_count  # Direct field access and cached fields
 
 ```bash
 # Clone the project
-git clone <https://github.com/StevenGerrard8/twitter_project--1>
-cd twitter_project--1
+git clone <https://github.com/StevenGerrard8/twitter-clone-backend>
+cd twitter-clone-backend
 
 # Create virtual environment
 python -m venv venv
@@ -354,52 +397,7 @@ python manage.py runserver
 
 celery -A twitter worker -l info
 
-## API Endpoints
 
-### User Related
-
-- `/admin` - Django administration
-- `POST /api/accounts/signup/` - User registration
-- `POST /api/accounts/login/` - User login
-- `POST /api/accounts/logout/` - User logout
-- `GET /api/accounts/login_status/` - Get login status
-- `PUT /api/profiles/<pk>/` - Update User profile
-
-### Tweet Related
-
-- `GET /api/tweets/` - Get tweet list (will contain details)
-- `POST /api/tweets/` - Create tweet
-- `GET /api/tweets/<pk>/?comment_limit` - Get a specific tweet(comment_limit is an optional argument)
-- `DELETE /api/tweets/<id>/` - Delete tweet
-
-### Friendship Related
-
-- `GET /api/friendships/?from_user_id=?` - Get following list
-- `GET /api/friendships/?to_user_id=?` - Get followers list
-- `POST /api/friendships/?from_user_id=?&to_user_id=?` - Follow user
-- `DELETE /api/friendships/remove/?from_user_id=?&to_user_id=?` - Unfollow user
-
-### Like Related
-
-- `POST /api/likes/` - Like content(require params=['content_type', 'content_id'], content_type
-  includes ['Tweet', 'Comment'])
-- `DELETE /api/likes/` - Unlike content(require params=['content_type', 'content_id'], content_type
-  includes ['Tweet', 'Comment'])
-
-### Comment Related
-
-- `GET /api/comments/?tweet_id=?` - Get comment list of a tweet
-- `POST /api/comments/` - Post comment(require params = ['user_id','tweet_id','content'])
-
-### NewsFeed Related
-
-- `GET /api/newsfeeds/` - Get newsfeeds of the current user
-
-### Notification Related
-
-- `GET /api/notifications/unread-count/` - Get unread count of the notifications of the current user
-- `POST /api/notifications/mark-all-as-read/` - Mark all unread notifications of the current user as read
-- `PUT /api/notifications/<pk>/` - Update a certain notification as read or unread
 
 ## Development Guide
 
@@ -438,6 +436,18 @@ python manage.py test -v2
 4. Configure Celery task queue
 5. Use Gunicorn as WSGI server
 6. Configure Nginx as reverse proxy
+
+
+## References
+
+- [redianmarku/Django‑Twitter‑Clone] – A fully functional Twitter-like application built with Django, including user
+  auth, tweets, follows, and likes.
+- [vBubbaa/django‑twitter] – A Django Twitter clone with full user system, AJAX-powered tweets, likes, comments, and
+  follow features.
+- [ArJSarmiento/Twitter‑Clone‑Django] – Responsive Twitter clone on Django 3.2 including editing, likes, and follows.
+
+
+
 
 ## License
 
