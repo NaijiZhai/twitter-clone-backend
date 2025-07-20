@@ -288,51 +288,61 @@ tweet.likes_count  # Direct field access and cached fields
 
 ```bash
 # Clone the project
-git clone <https://github.com/StevenGerrard8/twitter-clone-backend>
-cd twitter-clone-backend
-
+git clone [https://github.com/StevenGerrard8/twitter-clone-backend](https://github.com/StevenGerrard8/twitter-clone-backend) cd twitter-clone-backend
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
+python -m venv venv source venv/bin/activate # Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
+``` 
+
+### 2. Change Settings and Environment
+
+#### Set Allowed Hosts
+
+Change this to `*` for development:
 
 ```
+python ALLOWED_HOSTS = ['*'] CSRF_TRUSTED_ORIGINS = ['*']
+``` 
 
-### 2.Change Settings and env
+#### Set DEBUG
 
-#### Set allowed host
+For development:
 
-##### Change this to *
+```
+python DEBUG = True
+``` 
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['*']
+For production:
 
-#### Set DEBUG = True
-
-DEBUG = False
+```
+python DEBUG = False
+``` 
 
 #### Set up Message Queue and Storage
 
-See details in https://django-storages.readthedocs.io/en/latest/
-and https://docs.celeryq.dev/en/stable/
+See details in:
+
+- https://django-storages.readthedocs.io/en/latest/
+- https://docs.celeryq.dev/en/stable/
 
 #### Set up .env in ./twitter
-OPENAI_API_KEY = 
-SECRET_KEY='your-django-secret-key'
 
+Create a `.env` file in the `./twitter` directory with:
 
-The `OPENAI_API_KEY` is required for content moderation checks. Please be aware that using this key might incur costs
-according to OpenAI's pricing; it is **not free**.  
-You need to obtain your own API key from [OpenAI](https://platform.openai.com/account/api-keys) and set it in your
-environment or configuration file.
+```
+env OPENAI_API_KEY=your-openai-api-key SECRET_KEY=your-django-secret-key
+``` 
+
+**Note**: The `OPENAI_API_KEY` is required for content moderation checks. Please be aware that using this key might
+incur costs according to OpenAI's pricing; it is **not free**. You need to obtain your own API key
+from [OpenAI](https://platform.openai.com/account/api-keys) and set it in your environment or configuration file.
 
 You can generate a secure Django secret key using:
 
-```bash
-python -c "import secrets; print(secrets.token_urlsafe())"
 ```
+bash python -c "import secrets; print(secrets.token_urlsafe())"
+``` 
 
 ### 3. Database Setup
 
@@ -340,93 +350,94 @@ python -c "import secrets; print(secrets.token_urlsafe())"
 
 1. **Start MySQL service**
 
-sudo systemctl start; mysql sudo systemctl enable mysql
+```
+bash sudo systemctl start mysql sudo systemctl enable mysql
+``` 
 
 2. **Create database and user**
 
-#### Login to MySQL
-
+```
+bash
+# Login to MySQL
 mysql -u root -p
-
-#### Create database(change if you don't want to use root)
-
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
-FLUSH PRIVILEGES;
-CREATE DATABASE IF NOT EXISTS twitter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+# Create database (change if you don't want to use root)
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword'; FLUSH PRIVILEGES; CREATE DATABASE IF NOT EXISTS twitter CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+``` 
 
 3. **Configure Django settings**
 
-#### In twitter/settings.py
+In `twitter/settings.py`:
 
-DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter', 'USER': 'root', '
-PASSWORD': 'yourpassword', 'HOST': 'localhost', 'PORT': '3306', } }
+```
+python DATABASES = { 'default': { 'ENGINE': 'django.db.backends.mysql', 'NAME': 'twitter', 'USER': 'root', 'PASSWORD': 'yourpassword', 'HOST': 'localhost', 'PORT': '3306', } }
+``` 
 
 ### 4. Redis Setup
 
 1. **Start Redis service**
 
-sudo systemctl start redis-server; sudo systemctl enable redis-server
+```
+bash sudo systemctl start redis-server sudo systemctl enable redis-server
+``` 
 
 2. **Test Redis connection**
-   bash redis-cli ping
 
-#### Should return: PONG
+```
+bash redis-cli ping
+# Should return: PONG
+``` 
 
 3. **Configure Django Redis settings**
 
-#### In twitter/settings.py
+In `twitter/settings.py`:
 
-CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', '
-OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
-
-#### Celery configuration
-
+```
+python CACHES = { 'default': { 'BACKEND': 'django_redis.cache.RedisCache', 'LOCATION': 'redis://127.0.0.1:6379/1', 'OPTIONS': { 'CLIENT_CLASS': 'django_redis.client.DefaultClient', } } }
+# Celery configuration
 CELERY_BROKER_URL = 'redis://localhost:6379/0' CELERY_RESULT_BACKEND = 'redis://localhost:6379/2'
+``` 
 
 ### 5. Django Project Setup
 
-#### Create database migrations
-
-####Apply migrations
+```
+bash
+# Create database migrations
+python manage.py makemigrations
+# Apply migrations
 python manage.py migrate
-####Create superuser
+# Create superuser
 python manage.py createsuperuser
+``` 
 
 ## Service Management
 
 ### Start All Services
 
-#### Start MySQL
-
+```
+bash
+# Start MySQL
 sudo systemctl start mysql
-
-#### Start Redis
-
+# Start Redis
 sudo systemctl start redis
-
-#### Start Django
-
+# Start Django
 python manage.py runserver
-
-#### Start Celery worker
-
+# Start Celery worker
 celery -A twitter worker -l info
+``` 
 
 ## Development Guide
 
 ### Testing
 
-``` bash
-## Run tests
+```
+bash
+# Run tests
 python manage.py test
-
 # Run specific app tests
 python manage.py test tweets
-
-# Run  tests with detail
+# Run tests with detail
 python manage.py test -v2
 ```
-
 
 ## Deployment
 
