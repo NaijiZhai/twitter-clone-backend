@@ -32,7 +32,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['twitter.naijizhai.com']
 # INTERNAL_IPS = ['10.0.2.2']
-
+CSRF_TRUSTED_ORIGINS = ['https://twitter.naijizhai.com']
 # Application definition
 
 INSTALLED_APPS = [
