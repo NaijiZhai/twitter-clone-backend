@@ -55,7 +55,7 @@ class SignupSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'password']
     username = serializers.CharField(allow_blank = False, required=True, max_length=20,min_length=6)
     email = serializers.EmailField()
-    password = serializers.CharField(allow_blank = False, required=True,max_length=20,min_length=6,write_only=True)
+    password = serializers.CharField(allow_blank = False,style={'input_type': 'password'}, required=True,max_length=20,min_length=6,write_only=True)
     def validate(self, data):
         data['email'] = data['email'].lower()
         if User.objects.filter(username=data['username']).exists():
