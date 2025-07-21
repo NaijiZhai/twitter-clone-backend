@@ -36,6 +36,7 @@ This project replicates essential features of Twitter using Django, optimized fo
 
 ### Advanced Features (TBD)
 
+- **Frontend UI** - Build responsive web frontend user interface
 - **Nested Comments** - Support for comment on comments
 - **Optimize Storage** - Switch friendships to HBase or Casandra for write heavy operation.
 - **Friend Recommendation** - AI-powered user discovery and friend suggestions
