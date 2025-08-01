@@ -54,7 +54,7 @@ class TestCase(DjangoTestCase):
 
 
     def create_newsfeed(self, user, tweet):
-        return NewsFeed.objects.create(user=user, tweet=tweet)
+        return NewsFeed.objects.get_or_create(user=user, tweet=tweet)[0]
 
 
     def create_user_and_client(self, *args, **kwargs):

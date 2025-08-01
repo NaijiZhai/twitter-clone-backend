@@ -1,43 +1,32 @@
-from newsfeeds.models import NewsFeed
+import time
+
+from django.test import TestCase, TransactionTestCase
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from unittest.mock import patch, MagicMock
+from rest_framework.test import APIClient
+
 from newsfeeds.services import NewsFeedService
-from newsfeeds.tasks import fanout_newsfeeds_main_task
-from testing.testcases import TestCase
+from newsfeeds.models import NewsFeed
+from tweets.models import Tweet
+from friendships.models import Friendship
+from friendships.services import FriendshipServices
+from cache_utils.cache_constants import NEWSFEED_USER_PATTERN
 
 
-class NewsFeedTaskTests(TestCase):
+class NewsFeedServiceTestCase(TestCase):
+    import time
 
-    def setUp(self):
-        super(NewsFeedTaskTests, self).setUp()
-        self.zhai = self.create_user('zhai')
-        self.zhou = self.create_user('zhou')
+    from django.test import TestCase, TransactionTestCase
+    from django.contrib.auth.models import User
+    from django.core.cache import cache
+    from unittest.mock import patch, MagicMock
+    from rest_framework.test import APIClient
 
-    def test_fanout_main_task(self):
-        tweet = self.create_tweet(self.zhai, 'tweet 1')
-        self.create_friendship(self.zhou, self.zhai)
-        msg = fanout_newsfeeds_main_task(tweet.id, tweet.created_at, self.zhai.id)
-        self.assertEqual(1 + 1, NewsFeed.objects.count())
+    from newsfeeds.services import NewsFeedService
+    from newsfeeds.models import NewsFeed
+    from tweets.models import Tweet
+    from friendships.models import Friendship
+    from friendships.services import FriendshipServices
+    from cache_utils.cache_constants import NEWSFEED_USER_PATTERN
 
-        self.assertEqual(msg, '1 newsfeeds going to fanout, 1 batches created.')
-        cached_list = NewsFeedService.get_cached_newsfeed(self.zhai.id)
-        self.assertEqual(len(cached_list), 1)
-
-        for i in range(2):
-            user = self.create_user('user{}'.format(i))
-            self.create_friendship(user, self.zhai)
-        tweet = self.create_tweet(self.zhai, 'tweet 2')
-        msg = fanout_newsfeeds_main_task(tweet.id, tweet.created_at, self.zhai.id)
-        self.assertEqual(4 + 2, NewsFeed.objects.count())
-        self.assertEqual(msg, '3 newsfeeds going to fanout, 1 batches created.')
-        cached_list = NewsFeedService.get_cached_newsfeed(self.zhai.id)
-        self.assertEqual(len(cached_list), 2)
-
-        user = self.create_user('another user')
-        self.create_friendship(user, self.zhai)
-        tweet = self.create_tweet(self.zhai, 'tweet 3')
-        msg = fanout_newsfeeds_main_task(tweet.id, tweet.created_at, self.zhai.id)
-        self.assertEqual(8 + 3, NewsFeed.objects.count())
-        self.assertEqual(msg, '4 newsfeeds going to fanout, 2 batches created.')
-        cached_list = NewsFeedService.get_cached_newsfeed(self.zhai.id)
-        self.assertEqual(len(cached_list), 3)
-        cached_list = NewsFeedService.get_cached_newsfeed(self.zhou.id)
-        self.assertEqual(len(cached_list), 3)

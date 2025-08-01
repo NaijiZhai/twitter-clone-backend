@@ -88,14 +88,14 @@ class FriendshipApiTests(TestCase):
         Friendship.objects.create(from_user=self.zhou, to_user=self.zhai)
         count = Friendship.objects.count()
         response = self.zhou_client.delete(
-            url + 'remove/?from_user_id={}'.format(str(self.zhou.id) + '&to_user_id={}'.format(str(self.zhai.id))))
+            url +'?to_user_id={}'.format(str(self.zhai.id)))
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(response.data['delete'], 1)
+        self.assertEqual(response.data['deleted'], 1)
         self.assertEqual(Friendship.objects.count(), count - 1)
         #
         count = Friendship.objects.count()
         response = self.zhou_client.delete(
-            url + 'remove/?from_user_id={}'.format(str(self.zhou.id) + '&to_user_id={}'.format(str(self.zhai.id))))
+            url  + '?to_user_id={}'.format(str(self.zhai.id)))
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Friendship.objects.count(), count)
 

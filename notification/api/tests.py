@@ -1,5 +1,7 @@
 from notifications.models import Notification
 
+from likes.models import Like
+from notification.services import NotificationService
 from testing.testcases import TestCase
 
 COMMENT_URL = '/api/comments/'
@@ -130,8 +132,8 @@ class NotificationApiTests(TestCase):
             'content_type': 'comment',
             'content_id': comment.id,
         })
+        like = Like.objects.order_by('-created_at').first()
         notification = self.zhai.notifications.first()
-
         url = '/api/notifications/{}/'.format(notification.id)
         # put
         response = self.zhou_client.post(url, {'unread': False})

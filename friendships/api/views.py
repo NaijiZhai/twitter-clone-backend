@@ -52,27 +52,33 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         key = 'followings' if 'from_user_id' in request.query_params else 'followers'
         return self.get_paginated_response({key: serializer.data})
 
-    @require_all_params(params=['from_user_id', 'to_user_id', ], request_attr='data')
+    @require_all_params(params=['to_user_id'], request_attr='data')
     @rate_limit('3/s')
     def create(self, request):
-        if Friendship.objects.filter(from_user_id=request.data['from_user_id'],
+        if Friendship.objects.filter(from_user_id=request.user.id,
                                      to_user_id=request.data['to_user_id']).exists():
             return Response({'success': True, 'duplicate': True}, status=200)
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         if not serializer.is_valid():
             return Response(serializer.errors, status=400)
         serializer.save()
-        NewsFeedService.inject_newsfeed(from_user=request.data['from_user_id'], to_user=request.data['to_user_id'] )
+        NewsFeedService.inject_newsfeed(from_user_id=request.user.id, to_user_id=request.data['to_user_id'])
         return Response({'success': True, 'duplicate': False, 'data': serializer.data}, status=201)
 
-    @require_all_params(params=['from_user_id', 'to_user_id', ])
-    @action(methods=['delete'], detail=False, url_path='remove')
+    @require_all_params(params=['to_user_id'])
+    @action(methods=['delete'], detail=False)
     @rate_limit('3/s')
     def delete(self, request, **kwargs):
-        query_params = request.query_params
-        is_deleted, _ = Friendship.objects.filter(from_user_id=query_params['from_user_id'],
-                                                  to_user_id=query_params['to_user_id']).delete()
+        from_user_id = request.user.id
+        to_user_id = request.query_params['to_user_id']
+
+        is_deleted, _ = Friendship.objects.filter(
+            from_user_id=from_user_id,
+            to_user_id=to_user_id
+        ).delete()
+
         if not is_deleted:
-            return Response({'message': 'friendship does not exit'}, status=400)
-        NewsFeedService.remove_newsfeed(from_user=query_params['from_user_id'], to_user=query_params['to_user_id'])
-        return Response({'success': True, 'delete': is_deleted}, status=204)
+            return Response({'message': 'friendship does not exist'}, status=400)
+
+        NewsFeedService.remove_newsfeed(from_user=from_user_id, to_user=to_user_id)
+        return Response({'success': True, 'deleted': is_deleted}, status=204)

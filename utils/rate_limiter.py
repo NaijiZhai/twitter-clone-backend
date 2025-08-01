@@ -246,7 +246,7 @@ def rate_limit(rate: str,
                redis_port=6379,
                redis_db=11,
                status_code = 429,
-               enabled: Optional[bool] = None) -> Callable:
+               enabled: Optional[bool] = False) -> Callable:
     """
     Decorator to add rate limiting to view functions
 

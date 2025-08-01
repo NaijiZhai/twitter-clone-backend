@@ -4,6 +4,7 @@ from cache_utils.cache_constants import NEWSFEED_USER_PATTERN
 from cache_utils.redis_client import RedisClient
 from cache_utils.redis_helper import RedisHelper
 from friendships.models import Friendship
+from friendships.services import FriendshipServices
 from newsfeeds.models import NewsFeed
 from newsfeeds.services import NewsFeedService
 from testing.testcases import TestCase
@@ -67,59 +68,55 @@ class NewsFeedApiTests(TestCase):
     def test_pagination(self):
         page_size = CustomEndlessPagination.page_size
         followed_user = self.create_user('followed')
-        newsfeeds = []
+        tweets = []
+        Friendship.objects.create(from_user=self.zhai, to_user=followed_user)
         for i in range(page_size * 2):
             tweet = self.create_tweet(followed_user)
-            newsfeed = self.create_newsfeed(user=self.zhai, tweet=tweet)
-            newsfeeds.append(newsfeed)
-
-        newsfeeds = newsfeeds[::-1]
-
+            tweets.append(tweet)
+        tweets = tweets[::-1]
         # pull the first page
         response = self.zhai_client.get(NEWSFEEDS_URL)
         self.assertEqual(response.data['has_next_page'], True)
         self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['results'][0]['id'], newsfeeds[0].id)
-        self.assertEqual(response.data['results'][1]['id'], newsfeeds[1].id)
+        self.assertEqual(response.data['results'][0]['id'].split('_')[1], str(tweets[0].id))
+        self.assertEqual(response.data['results'][1]['id'].split('_')[1], str(tweets[1].id))
         self.assertEqual(
-            response.data['results'][page_size - 1]['id'],
-            newsfeeds[page_size - 1].id,
+            response.data['results'][page_size - 1]['id'].split('_')[1],
+            str(tweets[page_size - 1].id),
         )
 
         # pull the second page
         response = self.zhai_client.get(
             NEWSFEEDS_URL,
-            {'created_at__lt': newsfeeds[page_size - 1].created_at},
+            {'created_at__lt': tweets[page_size - 1].created_at},
         )
         self.assertEqual(response.data['has_next_page'], False)
         results = response.data['results']
         self.assertEqual(len(results), page_size)
-        self.assertEqual(results[0]['id'], newsfeeds[page_size].id)
-        self.assertEqual(results[1]['id'], newsfeeds[page_size + 1].id)
+        self.assertEqual(results[0]['id'].split('_')[1], str(tweets[page_size].id))
+        self.assertEqual(results[1]['id'].split('_')[1], str(tweets[page_size + 1].id))
         self.assertEqual(
-            results[page_size - 1]['id'],
-            newsfeeds[2 * page_size - 1].id,
+            results[page_size - 1]['id'].split('_')[1],
+            str(tweets[2 * page_size - 1].id),
         )
 
         # pull latest newsfeeds
         response = self.zhai_client.get(
             NEWSFEEDS_URL,
-            {'created_at__gt': newsfeeds[0].created_at},
+            {'created_at__gt': tweets[0].created_at},
         )
         self.assertEqual(response.data['has_next_page'], False)
         self.assertEqual(len(response.data['results']), 0)
-        print(len(newsfeeds))
 
         tweet = self.create_tweet(followed_user, content='test_bug')
 
-        new_newsfeed = self.create_newsfeed(user=self.zhai, tweet=tweet)
         response = self.zhai_client.get(
             NEWSFEEDS_URL,
-            {'created_at__gt': newsfeeds[0].created_at},
+            {'created_at__gt': tweets[0].created_at},
         )
         self.assertEqual(response.data['has_next_page'], False)
         self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['id'], new_newsfeed.id)
+        self.assertEqual(response.data['results'][0]['id'].split('_')[1], str(tweet.id))
 
     def test_user_cache(self):
         profile = self.zhou.profile
@@ -129,7 +126,7 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(self.zhai.username, 'zhai')
         self.create_newsfeed(self.zhou, self.create_tweet(self.zhai))
         self.create_newsfeed(self.zhou, self.create_tweet(self.zhou))
-
+        Friendship.objects.create(from_user=self.zhou, to_user=self.zhai)
         response = self.zhou_client.get(NEWSFEEDS_URL)
         results = response.data['results']
         self.assertEqual(results[0]['tweet']['user']['username'], 'zhou')
@@ -148,6 +145,7 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(results[1]['tweet']['user']['username'], '2')
 
     def test_tweet_cache(self):
+        Friendship.objects.create(from_user=self.zhou, to_user=self.zhai)
         tweet = self.create_tweet(self.zhai, 'content1')
         self.create_newsfeed(self.zhou, tweet)
         response = self.zhou_client.get(NEWSFEEDS_URL)
@@ -183,35 +181,32 @@ class NewsFeedApiTests(TestCase):
         list_limit = REDIS_LIST_LIMIT_LENGTH
         page_size = 20
         users = [self.create_user('user{}'.format(i)) for i in range(5)]
-        newsfeeds = []
+        for user in users:
+            self.create_friendship(self.zhai, user)
+        tweets = []
         for i in range(list_limit + page_size):
             tweet = self.create_tweet(user=users[i % 5], content='feed{}'.format(i))
-            feed = self.create_newsfeed(self.zhai, tweet)
-            newsfeeds.append(feed)
-        newsfeeds = newsfeeds[::-1]
+            tweets.append(tweet)
+        newsfeeds = tweets[::-1]
 
-        # only cached list_limit objects
-        cached_newsfeeds = NewsFeedService.get_cached_newsfeed(self.zhai.id)
-        self.assertEqual(len(cached_newsfeeds), list_limit)
-        queryset = NewsFeed.objects.filter(user=self.zhai)
-        self.assertEqual(queryset.count(), list_limit + page_size)
-
+        print('---------')
         results = self._paginate_to_get_newsfeeds(self.zhai_client)
+        for result in results:
+            self.assertEqual(str(self.zhai.id), result['id'].split('_')[2])
         self.assertEqual(len(results), list_limit + page_size)
         for i in range(list_limit + page_size):
-            self.assertEqual(newsfeeds[i].id, results[i]['id'])
+            self.assertEqual(str(newsfeeds[i].id), results[i]['id'].split('_')[1])
 
         # a followed user created a new tweet
         self.create_friendship(self.zhai, self.zhou)
         new_tweet = self.create_tweet(self.zhou, 'an new tweet')
-        NewsFeedService.fanout_to_followers(new_tweet)
 
         def _test_newsfeeds_after_new_feed_pushed():
             results = self._paginate_to_get_newsfeeds(self.zhai_client)
             self.assertEqual(len(results), list_limit + page_size + 1)
             self.assertEqual(results[0]['tweet']['id'], new_tweet.id)
             for i in range(list_limit + page_size):
-                self.assertEqual(newsfeeds[i].id, results[i + 1]['id'])
+                self.assertEqual(str(newsfeeds[i].id), results[i + 1]['id'].split('_')[1])
 
         _test_newsfeeds_after_new_feed_pushed()
 

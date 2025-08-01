@@ -28,9 +28,9 @@ SECRET_KEY = env('SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['twitter.naijizhai.com']
+ALLOWED_HOSTS = ['twitter.naijizhai.com', '*']
 # INTERNAL_IPS = ['10.0.2.2']
 CSRF_TRUSTED_ORIGINS = ['https://twitter.naijizhai.com']
 # Application definition
@@ -61,13 +61,18 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'utils.auth.CsrfExemptSessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+
 }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -105,6 +110,9 @@ DATABASES = {
         'PORT': '3306',
         'USER': 'root',
         'PASSWORD': 'yourpassword',
+        'CONN_MAX_AGE': 60,
+        'CONN_HEALTH_CHECKS': True,
+
     }
 }
 

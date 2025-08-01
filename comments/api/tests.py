@@ -4,6 +4,7 @@ from django.utils import timezone
 
 from cache_utils.redis_helper import RedisHelper
 from comments.models import Comment
+from friendships.models import Friendship
 # Create your tests here.
 from testing.testcases import TestCase
 from rest_framework.test import APIClient
@@ -153,6 +154,7 @@ class CommentApiTests(TestCase):
         
     def test_comments_count(self):
         # test tweet detail api
+        Friendship.objects.create(from_user=self.zhou, to_user=self.zhai)
         tweet = self.create_tweet(self.zhai)
         url = TWEET_DETAIL_API.format(tweet.id)
         response = self.zhou_client.get(url)

@@ -1,5 +1,5 @@
 from notifications.signals import notify
-
+from notification.tasks import send_notification_async
 
 class NotificationService:
 
@@ -8,7 +8,7 @@ class NotificationService:
         target = like.target
 
         # Don't notify yourself
-        if target.user == like.user:
+        if target.user_id == like.user_id:
             return
 
         # Use a mapping for cleaner code
@@ -17,27 +17,28 @@ class NotificationService:
             'comment': 'liked your comment'
         }
         verb = verb_mapping.get(target._meta.model_name, None)
-        # print(
-        #     f"Sending notification for {target.user} to {like.user} "
-        #     f"with verb {verb} and target {target}"
-        # )
+
         if verb:
-            notify.send(
-                like.user,
-                recipient=target.user,
+            # 异步发送！
+            send_notification_async.delay(
+                actor_id=like.user_id,
+                recipient_id=target.user_id,
                 verb=verb,
-                target=target
+                target_type=f'{target._meta.app_label}.{target._meta.model_name}',
+                target_id=target.id
             )
 
     @classmethod
     def send_comment_notification(cls, comment):
         target = comment.tweet
 
-        if target.user == comment.user:
+        if target.user_id == comment.user_id:
             return
 
-        notify.send(
-                comment.user,
-                recipient=target.user,
-                verb='commented on your tweet',
-                target=target)
+        send_notification_async.delay(
+            actor_id=comment.user_id,
+            recipient_id=target.user_id,
+            verb='commented on your tweet',
+            target_type='tweets.Tweet',
+            target_id=target.id
+        )

@@ -116,7 +116,6 @@ class LikeApiTests(TestCase):
 
         # zhou has not liked before
         response = self.zhou_client.delete(LIKE_CANCEL_URL, like_comment_data)
-        print(response.data)
         self.assertEqual(response.status_code, 200)
         tweet = tweet.__class__.objects.get(id=tweet.id)
         comment = comment.__class__.objects.get(id=comment.id)

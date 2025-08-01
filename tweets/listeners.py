@@ -3,6 +3,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 import cache_utils.redis_helper
+from newsfeeds.services import NewsFeedService
 from tweets.models import Tweet
 from cache_utils.cache_utils import CacheUtils
 from tweets.services import TweetService
@@ -23,3 +24,10 @@ def push_tweet_to_redis(sender, instance, created, **kwargs):
 def invalidate_cache_post_delete(sender, instance, **kwargs):
     TweetService.delete_cache(instance)
     CacheUtils.invalidate_cache(Tweet, instance.id)
+
+
+@receiver(post_save, sender=Tweet)
+def fan_out(sender, instance, created, **kwargs):
+    if not created:
+        return
+    NewsFeedService.fanout_to_followers(instance, instance.created_at)

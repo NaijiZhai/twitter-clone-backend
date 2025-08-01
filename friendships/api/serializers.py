@@ -49,12 +49,12 @@ class FollowingSerializer(serializers.Serializer, FollowingSetMixin):
 
 
 class FriendSerializerForCreate(serializers.Serializer):
-    from_user_id = serializers.IntegerField()
     to_user_id = serializers.IntegerField()
     created_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, data):
-        if data['from_user_id'] == data['to_user_id']:
+        data['from_user_id'] = self.context['request'].user.id
+        if  data['from_user_id'] == data['to_user_id']:
             raise serializers.ValidationError('You can\'t follow yourself')
         if not User.objects.filter(id=data['from_user_id']).exists():
             raise serializers.ValidationError('From user does not exist')

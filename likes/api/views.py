@@ -27,6 +27,7 @@ class LikeViewSet(GenericViewSet):
             like, _is_created = serializer.get_or_create()
             if _is_created:
                 notification.services.NotificationService.send_like_notification(like)
+                pass
 
         return Response({'success': True, 'data': LikeSerializer(like).data}, status=201)
 
