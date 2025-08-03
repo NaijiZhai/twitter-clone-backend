@@ -1,0 +1,41 @@
+[2025-07-28 01:03:24,020: INFO/MainProcess] Found credentials in shared credentials file: ~/.aws/credentials
+[2025-07-28 01:03:24,266: INFO/MainProcess] Connected to sqs://localhost//
+[2025-07-28 01:03:24,275: INFO/MainProcess] Found credentials in shared credentials file: ~/.aws/credentials
+[2025-07-28 01:03:24,539: INFO/MainProcess] high@Mac-mini.local ready.
+[2025-07-28 01:12:47,215: INFO/MainProcess] Task newsfeeds.tasks.fanout_newsfeeds_main_task[7e14dbf0-6bc3-4452-9e35-280164e722ea] received
+[2025-07-28 01:12:47,337: INFO/ForkPoolWorker-2] Found credentials in shared credentials file: ~/.aws/credentials
+[2025-07-28 01:12:50,705: INFO/ForkPoolWorker-2] Task newsfeeds.tasks.fanout_newsfeeds_main_task[7e14dbf0-6bc3-4452-9e35-280164e722ea] succeeded in 3.48728470900096s: '59910 newsfeeds going to fanout, 60 batches created.'
+
+
+
+
+[2025-07-28 01:14:31,892: INFO/ForkPoolWorker-2] Task newsfeeds.tasks.fanout_newsfeeds_batch_task[b0c6d950-64d5-45d1-8d09-57483362fa70] succeeded in 0.7925265830053831s: '1000 newsfeeds created'
+from django.db import connection
+
+with connection.cursor() as cursor:
+    cursor.execute("""
+    ...             SELECT
+    ...                 table_rows,
+    ...                 data_length,
+    ...                 index_length,
+    ...                 data_free,
+    ...                 avg_row_length,
+    ...                 (data_free / (data_length + data_free)) * 100 as fragmentation_pct
+    ...             FROM information_schema.tables
+    ...             WHERE table_schema = DATABASE()
+    ...             AND table_name = 'newsfeeds_newsfeed'
+    ...         """)
+result = cursor.fetchone()
+...         if result:
+               print(f"avg row: {avg_row} bytes")
+
+127.0.0.1:6379[3]> memory usage "user: 25432:newsfeeds"
+(integer) 88
+
+
+so it takes roughly 25s to generate all newsfeeds, also it takes roughly 500bytes (sql index cache) to store a newsfeed,
+so I have to use pull for celebrities.
+what should the threshold be?
+
+I ask chatgpt/claude/gemini/copilot:
+the average answer is 5s of latency so based on that I set threshold to 5000

@@ -1,0 +1,14 @@
+mysqlslap
+--user=root
+ --password=yourpassword
+  --host=localhost
+   --concurrency=50
+   --iterations=1
+   --create-schema=twitter
+    --query="SELECT t.*, u.username FROM tweets_tweet t JOIN auth_user u ON t.user_id = u.id WHERE u.id = FLOOR(1 + RAND() * 1000) ORDER BY t.created_at DESC LIMIT 20;"
+    --number-of-queries=10000
+     mysqlslap: [Warning] Using a password on the command line interface can be insecure.
+      Benchmark Average number of seconds to run all queries: 2894.881 seconds
+       Minimum number of seconds to run all queries: 2894.881 seconds
+       Maximum number of seconds to run all queries: 2894.881 seconds
+ Number of clients running queries: 50 Average number of queries per client: 200
