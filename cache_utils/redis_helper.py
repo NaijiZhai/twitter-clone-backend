@@ -66,7 +66,7 @@ class RedisHelper:
         if not conn.exists(key):
             sync_newsfeed_cache_task.delay(obj.user_id)
             return
-        conn.lpush(key, obj)
+        conn.lpush(key, RedisSerializer.serialize(obj))
         conn.ltrim(key, 0, cache_constants.REDIS_LIST_LIMIT_LENGTH - 1)
 
     @classmethod
@@ -193,5 +193,5 @@ class RedisHelper:
         conn = RedisClient.get_connection()
         if conn.exists(key):
             obj = conn.lindex(key, -1)
-            return obj
+            return json.loads(obj)[0]
         return None

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import connection
 
@@ -9,8 +11,7 @@ from newsfeeds.tasks import fanout_newsfeeds_main_task, sync_newsfeed_cache_task
 from tweets.models import Tweet
 
 # threshold
-HYBRID_MODE_THRESHOLD = 0
-CACHE_SYNC_INTERVAL_HOURS = 6
+HYBRID_MODE_THRESHOLD = 5000
 MAX_POSSIBLE_SCAN = 100
 
 
@@ -47,8 +48,14 @@ class NewsFeedService(object):
 
         last_newsfeed_in_cache = RedisHelper.get_last_obj_in_cache(NEWSFEED_USER_PATTERN.format(user_id=from_user_id))
         if last_newsfeed_in_cache:
-            if last_newsfeed_in_cache.created_at >= tweets[0].created_at:
-                return
+            if last_newsfeed_in_cache.get('fields', {}).get('is_pull_mode'):
+                creat_at = last_newsfeed_in_cache.get('fields', {}).get('created_at')
+                creat_at = datetime.fromisoformat(creat_at) if isinstance(creat_at, str) else creat_at
+                if creat_at and creat_at >= tweets[0].created_at:
+                    return
+            else:
+                if last_newsfeed_in_cache.created_at >= tweets[0].created_at:
+                    return
 
         if followers_count <= HYBRID_MODE_THRESHOLD:
             # create newsfeeds

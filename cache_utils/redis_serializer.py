@@ -32,13 +32,16 @@ class RedisSerializer:
 
     @classmethod
     def deserialize(cls, json_string):
+        if not isinstance(json_string, (str, bytes)):
+            if hasattr(json_string, '__class__'):
+                return json_string
+
         data = json.loads(json_string)[0]
 
         # check if it is pseudo newsfeed
         if data.get('fields', {}).get('is_pull_mode'):
             return cls._deserialize_pseudo_newsfeed(data)
         else:
-
             from django.core import serializers
             return list(serializers.deserialize('json', json_string))[0].object
 

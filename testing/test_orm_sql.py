@@ -1,4 +1,5 @@
 import os
+import sys
 
 import django
 
@@ -10,6 +11,7 @@ following_ids = [
     112948, 112951, 112954, 112955, 112947, 112953, 112949, 112950, 112952, 112956,
     113346, 113189, 113062, 113224, 113010, 113351, 112998, 113231, 113101, 113261,
 ]
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'twitter.settings')
 django.setup()
 

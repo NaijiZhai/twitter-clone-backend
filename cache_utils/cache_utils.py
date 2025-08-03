@@ -15,7 +15,7 @@ class CacheUtils:
         return f"{model.__name__}:{id}"
 
     @classmethod
-    def get_object_in_cache(cls, model, id, id_for_model = True):
+    def get_object_in_cache(cls, model, id, ):
         key = cls.get_key(model, id)
         obj = cache.get(key)
 
