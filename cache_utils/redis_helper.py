@@ -4,84 +4,23 @@ from django.conf import settings
 from django.core.cache import cache, caches
 
 from cache_utils import cache_constants
+from cache_utils.cache_constants import REDIS_LIST_LIMIT_LENGTH, NEWSFEED_USER_PATTERN
 from cache_utils.cache_utils import CacheUtils
 from cache_utils.redis_client import RedisClient
 from cache_utils.redis_serializer import RedisSerializer
+from newsfeeds.tasks import sync_newsfeed_cache_task
+
 cache = caches['testing'] if settings.TESTING else caches['default']
 
 class RedisHelper:
 
     @classmethod
-    def _serialize_newsfeed_item(cls, obj):
+    def load_newsfeeds_to_cache_ordered(cls, key, cache_items):
         """
-        use django serializer to serialize newsfeed item
-        """
-        return RedisSerializer.serialize(obj)
-
-    @classmethod
-    def _deserialize_newsfeed_item(cls, item_bytes):
-        """
-        use django serializer to deserialize newsfeed item
-        """
-        return RedisSerializer.deserialize(item_bytes)
-
-    @classmethod
-    def get_from_redis_ordered(cls, key, user_id, model=None):
-        """
-        get objects from redis ordered cache
         """
         conn = RedisClient.get_connection()
-
-        if conn.exists(key):
-            cached_items = conn.lrange(key, 0, -1)
-            if not cached_items:
-                return cls._rebuild_ordered_cache(key, user_id, model)
-
-
-            objects = []
-            missed_items = []
-
-            for item_bytes in cached_items:
-                item_data = cls._deserialize_newsfeed_item(item_bytes)
-
-                if type(item_data.id) == int:
-                    objects.append(item_data)
-                else:
-                    try:
-                        from tweets.models import Tweet
-                        tweet = Tweet.objects.select_related('user').get(id=item_data['tweet_id'])
-                        pseudo_newsfeed = cls._create_pseudo_newsfeed(tweet, user_id)
-                        objects.append(pseudo_newsfeed)
-                    except Tweet.DoesNotExist:
-                        missed_items.append(item_data)
-
-            # 如果有缺失的项，重建缓存
-            if missed_items:
-                return cls._rebuild_ordered_cache(key, user_id, model)
-
-            return objects
-
-        # 缓存不存在，重建
-        return cls._rebuild_ordered_cache(key, user_id, model)
-
-    @classmethod
-    def _load_objects_to_cache_ordered(cls, key, queryset, model=None):
-        """
-        有序加载对象到缓存
-        """
-        conn = RedisClient.get_connection()
-        objects = []
-
-        # 获取实际对象以获取时间戳信息
-        db_objects = list(
-            model.objects.filter(id__in=queryset).select_related('tweet')[:cache_constants.REDIS_LIST_LIMIT_LENGTH])
-
-        # 按时间排序
-        db_objects.sort(key=lambda x: (x.created_at, x.id), reverse=True)
-
-        cache_items = [cls._serialize_newsfeed_item(obj) for obj in db_objects]
-
         if cache_items:
+            cache_items = [RedisSerializer.serialize(item) for item in cache_items]
             conn.rpush(key, *cache_items)
             conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
 
@@ -90,51 +29,26 @@ class RedisHelper:
         conn = RedisClient.get_connection()
         conn.delete(key)
 
-    @classmethod
-    def refresh_ordered_cache(cls, key, user_id, model):
-        """
-        refresh cache for newsfeeds ordered by time
-        """
-        cls.invalidate_cache(key)
-        return cls.get_from_redis_ordered(key, user_id, model)
 
     @classmethod
-    def _rebuild_ordered_cache(cls, key, user_id, model):
-        """
-        重建有序缓存
-        """
-        # 使用混合模式获取数据
-        from newsfeeds.services import NewsFeedService
-        newsfeeds = NewsFeedService.get_newsfeed_hybrid(
-            user_id=user_id,
-            count=cache_constants.REDIS_LIST_LIMIT_LENGTH
-        )
+    def create_pseudo_newsfeed(cls, tweet, user_id):
+        from newsfeeds.models import NewsFeed
 
-        # 构建缓存数据
-        conn = RedisClient.get_connection()
-        conn.delete(key)  # 清除旧缓存
+        # real newsfeed but do not save in db
+        pseudo = NewsFeed()
+        pseudo.id = f"pull_{tweet.id}_{user_id}"
+        pseudo.tweet = tweet
+        pseudo.tweet_id = tweet.id
+        pseudo.user_id = user_id
+        pseudo.created_at = tweet.created_at
+        pseudo.is_pull_mode = True
+        pseudo.insert_tag = ''  # default value
 
-        if newsfeeds:
-            cache_items = [cls._serialize_newsfeed_item(nf) for nf in newsfeeds]
-            conn.rpush(key, *cache_items)
-            conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
+        # mark this as pseduo obj so do not store in db
+        pseudo._state.adding = False
+        pseudo._state.db = None
 
-        return newsfeeds
-
-    @classmethod
-    def _create_pseudo_newsfeed(cls, tweet, user_id):
-        """
-        create a pseudo newsfeed object for tweets that don't have a corresponding newsfeed record in the database.
-        """
-        return type('NewsFeed', (), {
-            'id': f"pull_{tweet.id}_{user_id}",
-            'tweet': tweet,
-            'tweet_id': tweet.id,
-            'user_id': user_id,
-            'created_at': tweet.created_at,
-            'cached_tweet': tweet,
-            'is_pull_mode': True  # Add a flag to identify pull mode objects
-        })()
+        return pseudo
 
     @classmethod
     def push_obj_id(cls, key, obj, model):
@@ -150,10 +64,9 @@ class RedisHelper:
     def push_obj(cls, key, obj, model):
         conn = RedisClient.get_connection()
         if not conn.exists(key):
-            queryset = model.objects.filter(user=obj.user).order_by('-created_at')
-            cls._load_objects_to_cache(key, queryset.values_list('id', flat=True), model)
+            sync_newsfeed_cache_task.delay(obj.user_id)
             return
-        conn.lpush(key, obj.id)
+        conn.lpush(key, obj)
         conn.ltrim(key, 0, cache_constants.REDIS_LIST_LIMIT_LENGTH - 1)
 
     @classmethod
@@ -205,23 +118,24 @@ class RedisHelper:
         return list(queryset)
 
     @classmethod
-    def get_objs_from_redis(cls, key, user_id, model=None):
+    def get_newsfeeds_from_redis(cls, key, user_id, model=None):
         conn = RedisClient.get_connection()
-        objects = []
-        pseudo_objs = {}
-        if conn.exists(key):
-            obj_list = conn.lrange(key, 0, -1)
-            for obj_id in obj_list:
+        if not conn.exists(key):
+            from newsfeeds.services import NewsFeedService
+            from django.utils import timezone
 
+            # use current timestamp
+            now = timezone.now()
+            newsfeeds = NewsFeedService._get_newsfeeds_from_db_and_pull(
+                user_id, None, REDIS_LIST_LIMIT_LENGTH, created_at_lt=now, created_at_gt=None
+            )
+            cls.load_newsfeeds_to_cache_ordered(NEWSFEED_USER_PATTERN.format(user_id=user_id), newsfeeds)
 
-            # for serialized_data in serialized_list:
-            #     obj = RedisSerializer.deserialize(serialized_data)
-            #     objects.append(obj)
-            return objects
+            return newsfeeds
 
-        queryset = model.objects.filter(user_id=user_id).order_by('-created_at')
-        cls._load_objects_to_cache(key, queryset.values_list('id', flat=True), model)
-        return list(queryset)
+        obj_list = conn.lrange(key, 0, -1)
+        objects = [RedisSerializer.deserialize(obj) for obj in obj_list]
+        return objects
 
 
     @classmethod
@@ -236,10 +150,6 @@ class RedisHelper:
             conn.expire(key, cache_constants.REDIS_KEY_EXPIRE_TIME)
 
 
-    @classmethod
-    def invalidate_cache(cls, key):
-        conn = RedisClient.get_connection()
-        conn.delete(key)
 
     @classmethod
     def get_key_for_count(cls, obj, attr):
@@ -277,3 +187,11 @@ class RedisHelper:
         obj.refresh_from_db()
         conn.setex(key, cache_constants.REDIS_KEY_EXPIRE_TIME, getattr(obj, attr))
         return getattr(obj, attr)
+
+    @classmethod
+    def get_last_obj_in_cache(cls, key):
+        conn = RedisClient.get_connection()
+        if conn.exists(key):
+            obj = conn.lindex(key, -1)
+            return obj
+        return None

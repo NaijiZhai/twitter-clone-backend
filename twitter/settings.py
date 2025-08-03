@@ -248,6 +248,23 @@ CACHES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'breakfast-cache-sync': {
+        'task': 'newsfeeds.tasks.batch_sync_active_users_cache',
+        'schedule': crontab(hour=7, minute=0),  # before breakfast
+    },
+    'lunch-cache-sync': {
+        'task': 'newsfeeds.tasks.batch_sync_active_users_cache',
+        'schedule': crontab(hour=11, minute=0),  # before lunch
+    },
+    'dinner-cache-sync': {
+        'task': 'newsfeeds.tasks.batch_sync_active_users_cache',
+        'schedule': crontab(hour=16, minute=0),  # before dinner
+    },
+}
+
+CELERY_TIMEZONE = 'UTC'
 
 
 #Celery for MQ

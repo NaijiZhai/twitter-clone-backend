@@ -36,6 +36,7 @@ class Tweet(models.Model):
         indexes = [
             models.Index(fields=['user', 'created_at']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['-created_at', '-id']),
         ]
         ordering = ('user', '-created_at',)
 

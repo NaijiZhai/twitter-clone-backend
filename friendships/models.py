@@ -26,6 +26,8 @@ class Friendship(models.Model):
         indexes = [
             models.Index(fields=['from_user', 'created_at'], name='idx_from_user_created'),
             models.Index(fields=['to_user', 'created_at'], name='idx_to_user_created'),
+            models.Index(fields=['from_user', 'to_user'], name='idx_from_to'),
+            models.Index(fields=['to_user', 'from_user'], name='idx_to_from')
         ]
 
     def __str__(self):
