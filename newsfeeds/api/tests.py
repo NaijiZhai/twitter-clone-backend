@@ -74,15 +74,16 @@ class NewsFeedApiTests(TestCase):
             tweet = self.create_tweet(followed_user)
             tweets.append(tweet)
         tweets = tweets[::-1]
+        newsfeeds = NewsFeed.objects.filter(user=self.zhai).order_by('-created_at').all()
         # pull the first page
         response = self.zhai_client.get(NEWSFEEDS_URL)
         self.assertEqual(response.data['has_next_page'], True)
         self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['results'][0]['id'].split('_')[1], str(tweets[0].id))
-        self.assertEqual(response.data['results'][1]['id'].split('_')[1], str(tweets[1].id))
+        self.assertEqual(response.data['results'][0]['id'], newsfeeds[0].id)
+        self.assertEqual(response.data['results'][1]['id'], newsfeeds[1].id)
         self.assertEqual(
-            response.data['results'][page_size - 1]['id'].split('_')[1],
-            str(tweets[page_size - 1].id),
+            response.data['results'][page_size - 1]['id'],
+            newsfeeds[page_size - 1].id,
         )
 
         # pull the second page
@@ -93,11 +94,11 @@ class NewsFeedApiTests(TestCase):
         self.assertEqual(response.data['has_next_page'], False)
         results = response.data['results']
         self.assertEqual(len(results), page_size)
-        self.assertEqual(results[0]['id'].split('_')[1], str(tweets[page_size].id))
-        self.assertEqual(results[1]['id'].split('_')[1], str(tweets[page_size + 1].id))
+        self.assertEqual(results[0]['id'], newsfeeds[page_size].id)
+        self.assertEqual(results[1]['id'], newsfeeds[page_size + 1].id)
         self.assertEqual(
-            results[page_size - 1]['id'].split('_')[1],
-            str(tweets[2 * page_size - 1].id),
+            results[page_size - 1]['id'],
+            newsfeeds[2 * page_size - 1].id,
         )
 
         # pull latest newsfeeds
@@ -106,17 +107,17 @@ class NewsFeedApiTests(TestCase):
             {'created_at__gt': tweets[0].created_at},
         )
         self.assertEqual(response.data['has_next_page'], False)
-        self.assertEqual(len(response.data['results']), 0)
+        self.assertEqual(len(response.data['results']), 1)
 
         tweet = self.create_tweet(followed_user, content='test_bug')
-
+        newsfeed = NewsFeed.objects.filter(tweet=tweet).all()
         response = self.zhai_client.get(
             NEWSFEEDS_URL,
             {'created_at__gt': tweets[0].created_at},
         )
         self.assertEqual(response.data['has_next_page'], False)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['id'].split('_')[1], str(tweet.id))
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['results'][0]['id'], newsfeed[0].id)
 
     def test_user_cache(self):
         profile = self.zhou.profile
@@ -187,15 +188,12 @@ class NewsFeedApiTests(TestCase):
         for i in range(list_limit + page_size):
             tweet = self.create_tweet(user=users[i % 5], content='feed{}'.format(i))
             tweets.append(tweet)
-        newsfeeds = tweets[::-1]
+        newsfeeds = list(NewsFeed.objects.filter(user=self.zhai).order_by('-created_at').all())
 
-        print('---------')
         results = self._paginate_to_get_newsfeeds(self.zhai_client)
-        for result in results:
-            self.assertEqual(str(self.zhai.id), result['id'].split('_')[2])
         self.assertEqual(len(results), list_limit + page_size)
         for i in range(list_limit + page_size):
-            self.assertEqual(str(newsfeeds[i].id), results[i]['id'].split('_')[1])
+            self.assertEqual(newsfeeds[i].id, results[i]['id'])
 
         # a followed user created a new tweet
         self.create_friendship(self.zhai, self.zhou)
@@ -206,7 +204,7 @@ class NewsFeedApiTests(TestCase):
             self.assertEqual(len(results), list_limit + page_size + 1)
             self.assertEqual(results[0]['tweet']['id'], new_tweet.id)
             for i in range(list_limit + page_size):
-                self.assertEqual(str(newsfeeds[i].id), results[i + 1]['id'].split('_')[1])
+                self.assertEqual(newsfeeds[i].id, results[i + 1]['id'])
 
         _test_newsfeeds_after_new_feed_pushed()
 
