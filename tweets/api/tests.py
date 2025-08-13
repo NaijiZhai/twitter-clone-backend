@@ -170,7 +170,7 @@ class TweetApiTests(TestCase):
     def test_pagination(self):
         page_size = CustomEndlessPagination.page_size
 
-        # 清除现有推文，重新开始
+        # delete all tweets
         Tweet.objects.filter(user=self.zhai).delete()
         self.tweets1 = []
 
@@ -187,6 +187,7 @@ class TweetApiTests(TestCase):
         # pull the first page
         response = self.zhai_client.get(TWEET_LIST_API, {'user_id': self.zhai.id})
 
+        print(len(tweets), len(response.data['results']))
 
         self.assertEqual(response.data['has_next_page'], True)
         self.assertEqual(len(response.data['results']), page_size)

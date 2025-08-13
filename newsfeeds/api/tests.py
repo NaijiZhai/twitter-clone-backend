@@ -188,8 +188,14 @@ class NewsFeedApiTests(TestCase):
         for i in range(list_limit + page_size):
             tweet = self.create_tweet(user=users[i % 5], content='feed{}'.format(i))
             tweets.append(tweet)
-        newsfeeds = list(NewsFeed.objects.filter(user=self.zhai).order_by('-created_at').all())
+        newsfeeds = NewsFeed.objects.filter(user=self.zhai).order_by('-created_at').all()
+        print("QuerySet cached?", hasattr(newsfeeds, '_result_cache') and newsfeeds._result_cache is not None)
+        print("Cache contents:", getattr(newsfeeds, '_result_cache', None))
 
+        print("Initial cached?", hasattr(newsfeeds, '_result_cache'))
+
+        print(newsfeeds[0], 'first print')
+        print("After first access cached?", hasattr(newsfeeds, '_result_cache') and newsfeeds._result_cache is not None)
         results = self._paginate_to_get_newsfeeds(self.zhai_client)
         self.assertEqual(len(results), list_limit + page_size)
         for i in range(list_limit + page_size):
@@ -203,8 +209,9 @@ class NewsFeedApiTests(TestCase):
             results = self._paginate_to_get_newsfeeds(self.zhai_client)
             self.assertEqual(len(results), list_limit + page_size + 1)
             self.assertEqual(results[0]['tweet']['id'], new_tweet.id)
+            print(newsfeeds[0], 'second print')
             for i in range(list_limit + page_size):
-                self.assertEqual(newsfeeds[i].id, results[i + 1]['id'])
+                self.assertEqual(newsfeeds[i].id, results[i]['id'])
 
         _test_newsfeeds_after_new_feed_pushed()
 

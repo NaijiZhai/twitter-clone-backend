@@ -20,7 +20,6 @@ class NewsFeedViewSet(viewsets.GenericViewSet):
         if max_tweet_id:
             max_tweet_id = int(max_tweet_id)
 
-        count = int(request.GET.get('count', 20))
 
         # for pagination
         created_at_lt = request.GET.get('created_at__lt')

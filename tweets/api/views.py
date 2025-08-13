@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils.dateparse import parse_datetime
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 
@@ -29,55 +30,15 @@ class TweetViewSet(viewsets.GenericViewSet):
     @require_all_params(params=['user_id'])
     @rate_limit('3/s')
     def list(self, request):
-        user_id = request.query_params['user_id']
-
-        # 🔍 使用与NewsFeed类似的简化分页逻辑
-        # 如果有分页参数，直接查询数据库，不使用缓存
-        if 'created_at__lt' in request.query_params or 'created_at__gt' in request.query_params:
-            query = Tweet.objects.filter(user_id=user_id).order_by('-created_at')
-
-            # 应用时间过滤
-            if 'created_at__lt' in request.query_params:
-                query = query.filter(created_at__lt=request.query_params['created_at__lt'])
-            if 'created_at__gt' in request.query_params:
-                query = query.filter(created_at__gt=request.query_params['created_at__gt'])
-
-            # 获取分页大小+1的数据来判断是否有下一页
-            fetch_count = self.paginator.page_size + 1
-            results = list(query[:fetch_count])
-            has_next_page = len(results) > self.paginator.page_size
-            page = results[:self.paginator.page_size]
-
-            # 设置分页器的状态
-            self.paginator.has_next_page = has_next_page
-
-            serializer = TweetSerializer(page, context={'request': request}, many=True)
-            return Response({
-                'results': serializer.data,
-                'has_next_page': has_next_page
-            })
-
-        # 没有分页参数，尝试使用缓存
-        cached_tweets = TweetService.get_cached_tweets(user_id=user_id)
-
-        # 简化缓存逻辑：直接判断缓存是否足够
-        fetch_count = self.paginator.page_size + 1
-
-        if len(cached_tweets) >= fetch_count:
-            # 缓存足够，直接使用缓存
-            has_next_page = len(cached_tweets) > self.paginator.page_size
-            page = cached_tweets[:self.paginator.page_size]
-            self.paginator.has_next_page = has_next_page
-        else:
-            # 缓存不够或为空，查询数据库
-            query = Tweet.objects.filter(user_id=user_id).order_by('-created_at')
-            results = list(query[:fetch_count])
-            has_next_page = len(results) > self.paginator.page_size
-            page = results[:self.paginator.page_size]
-            self.paginator.has_next_page = has_next_page
-
-        serializer = TweetSerializer(page, context={'request': request}, many=True)
+        cached_tweets = TweetService.get_cached_tweets(user_id = request.query_params['user_id'])
+        page = self.paginator.paginated_cached_list(cached_tweets, request)
+        if page is None:
+            query = Tweet.objects.filter(user_id = request.query_params['user_id']).order_by('-created_at')
+            page = self.paginate_queryset(
+                query)
+        serializer = TweetSerializer(page, context = {'request': request}, many = True)
         return self.get_paginated_response(data=serializer.data)
+
 
     @rate_limit('3/s')
     def create(self, request):

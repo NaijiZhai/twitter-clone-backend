@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class ContentModerationService:
-    """Content moderation service with adjustable thresholds"""
+    """content moderation"""
 
     # Default thresholds for each category (0.0 to 1.0)
     DEFAULT_THRESHOLDS = {

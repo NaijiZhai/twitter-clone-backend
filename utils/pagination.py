@@ -67,13 +67,13 @@ class CustomEndlessPagination(BasePagination):
                 if obj.created_at < created_at__lt:
                     break
             else:
-                # 如果没找到符合条件的，index应该是列表长度
+                # If no matching object is found, index should be the length of the list
                 index = len(queryset)
 
-        # 取出一页的数据
+        # Extract one page of data
         page_data = queryset[index: index + self.page_size]
 
-        # 检查是否还有更多数据
+        # Check if there is more data beyond the current page
         remaining_data = queryset[index + self.page_size:]
         self.has_next_page = len(remaining_data) > 0
 
@@ -82,28 +82,19 @@ class CustomEndlessPagination(BasePagination):
     def paginated_cached_list(self, cached_list, request):
         paginated_list = self.paginated_ordered_list(cached_list, request)
 
-        # for latest ones
+        # For the latest data
         if 'created_at__gt' in request.query_params:
             return paginated_list
 
-        # 如果已经有分页结果，直接返回
+        # If pagination already has more data, return directly
         if self.has_next_page:
             return paginated_list
 
-        # 如果缓存包含了所有数据，也返回分页结果
+        # If the cache contains all available data, return directly
         if len(cached_list) < REDIS_LIST_LIMIT_LENGTH:
             return paginated_list
 
-        # 只有在确定缓存不完整且可能影响分页准确性时才返回None
-        # 比如：请求的是历史数据，但缓存中没有足够的历史数据
-        if 'created_at__lt' in request.query_params:
-            # 检查缓存是否包含足够的历史数据
-            if len(paginated_list) < self.page_size and len(cached_list) >= REDIS_LIST_LIMIT_LENGTH:
-                # 缓存不够，需要查数据库
-                return None
-
-        # 默认返回分页结果
-        return paginated_list
+        return None
 
     def get_paginated_response(self, data):
         return Response({
