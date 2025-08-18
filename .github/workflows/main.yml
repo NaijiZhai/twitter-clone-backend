@@ -21,20 +21,19 @@ jobs:
         ports: ["3306:3306"]
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot"
-          --health-interval=10s --health-timeout=5s --health-retries=5
+          --health-interval=10s --health-timeout=5s --health-retries=10
       redis:
         image: redis:7
         ports: ["6379:6379"]
         options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=10s --health-timeout=5s --health-retries=5
+          --health-cmd="redis-cli ping || exit 1"
+          --health-interval=10s --health-timeout=5s --health-retries=10
 
     strategy:
       matrix:
         python-version: [ "3.12" ]
 
     env:
-      # 这里用本地容器地址，避免依赖云上 Secrets
       DATABASE_URL: mysql://app:app@127.0.0.1:3306/app
       REDIS_URL: redis://127.0.0.1:6379/0
       DJANGO_SETTINGS_MODULE: config.settings.ci
@@ -47,13 +46,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+      - name: Install system dependencies (mysqlclient build and mysql CLI)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-mysql-client libmysqlclient-dev build-essential
 
+# ... existing code ...
       - name: Install dependencies
         run: |
           python -m pip install -U pip
@@ -66,10 +66,35 @@ jobs:
           pip --version
           pytest --version
 
+      - name: Wait for MySQL and Redis to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -proot --silent && redis-cli -h 127.0.0.1 ping | grep -q PONG; then
+              echo "MySQL and Redis are ready"
+              break
+            fi
+            echo "Waiting for services... ($i/30)"
+            sleep 2
+          done
+          mysql -h 127.0.0.1 -uroot -proot -e "SELECT VERSION();"
+
       - name: Django checks & migrations dry-run
         run: |
           python manage.py check
           python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations
+        run: |
+          python manage.py migrate --noinput
+
+      - name: Run linters (ruff, black, mypy)
+        run: |
+          ruff --version
+          ruff check .
+          black --version
+          black --check .
+          mypy --version
+          mypy .
 
       - name: Run tests (pytest + coverage)
         run: |
