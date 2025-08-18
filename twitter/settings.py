@@ -9,8 +9,9 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-import environ
 import os
+
+import environ
 
 env = environ.Env()
 
@@ -25,7 +26,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
-
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -43,13 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    #third party apps
+    # third party apps
     'rest_framework',
     # "debug_toolbar",
     'django_filters',
     'notifications',
-    
-    #project apps
+
+    # project apps
     'tweets',
     'friendships',
     'newsfeeds',
@@ -150,9 +150,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-#https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
-#https://www.linkedin.com/pulse/resolving-minio-behind-cloudflare-proxy-403-error-bhavesh-deshmukh-pk1nf/
-#https://community.cloudflare.com/t/content-length-is-removed-on-response-of-head-method/628350?page=2
+# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+# https://www.linkedin.com/pulse/resolving-minio-behind-cloudflare-proxy-403-error-bhavesh-deshmukh-pk1nf/
+# https://community.cloudflare.com/t/content-length-is-removed-on-response-of-head-method/628350?page=2
 import sys
 
 TESTING = (" ".join(sys.argv).find("manage.py test") != -1)
@@ -192,11 +192,8 @@ else:
         }
     }
 
-
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
-
-
 
 # LOGGING = {
 #     'version': 1,
@@ -241,14 +238,12 @@ CACHES = {
     },
 }
 
-
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 from celery.schedules import crontab
+
 CELERY_BEAT_SCHEDULE = {
     'breakfast-cache-sync': {
         'task': 'newsfeeds.tasks.batch_sync_active_users_cache',
@@ -266,8 +261,7 @@ CELERY_BEAT_SCHEDULE = {
 
 CELERY_TIMEZONE = 'UTC'
 
-
-#Celery for MQ
+# Celery for MQ
 CELERY_BROKER_URL = 'sqs://'
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     'region': 'us-east-2',
@@ -276,10 +270,10 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 from kombu import Queue
 
-#celery -A twitter worker -Q PriorityQueue.fifo,Twitte_Queue.fifo --loglevel=info
+# celery -A twitter worker -Q PriorityQueue.fifo,Twitte_Queue.fifo --loglevel=info
 CELERY_TASK_QUEUES = (
-    Queue('Standard',routing_key='NewsFeed'),
-    Queue('HighPriority',routing_key='HighPriority'),
+    Queue('Standard', routing_key='NewsFeed'),
+    Queue('HighPriority', routing_key='HighPriority'),
 )
 
 CELERY_TASK_ALWAYS_EAGER = TESTING
@@ -296,11 +290,7 @@ RATELIMIT_REDIS_PORT = 6379
 RATELIMIT_REDIS_DB = 11
 RATELIMIT_ENABLE = not TESTING
 
-
-
-
 OPENAI_API_KEY = env('OPENAI_API_KEY', default='your-api-key-here')
-
 
 # custom thresholds
 CONTENT_MODERATION_THRESHOLDS = {
