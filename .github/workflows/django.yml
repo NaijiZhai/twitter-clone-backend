@@ -1,0 +1,91 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ "stress-test-and-newsfeed-pull" ]
+  pull_request:
+    branches: [ "stress-test-and-newsfeed-pull" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: app
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: app
+          MYSQL_PASSWORD: app
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -pyourpassword"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
+    strategy:
+      matrix:
+        python-version: [ "3.12" ]
+
+    env:
+      DATABASE_URL: mysql://app:app@127.0.0.1:3306/app
+      REDIS_URL: redis://127.0.0.1:6379/0
+      DJANGO_SETTINGS_MODULE: config.settings.ci
+      PYTHONWARNINGS: default
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+          pip install pytest pytest-django pytest-cov ruff black mypy
+
+      - name: Show versions
+        run: |
+          python --version
+          pip --version
+          pytest --version
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format check (black)
+        run: black --check .
+
+      - name: Type check (mypy)
+        run: mypy .
+
+      - name: Django checks & migrations dry-run
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+
+      - name: Run tests (pytest + coverage)
+        run: |
+          pytest -q --disable-warnings --maxfail=1 \
+                 --cov=. --cov-report=xml --cov-fail-under=70
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
