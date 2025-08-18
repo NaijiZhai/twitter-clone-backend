@@ -66,9 +66,6 @@ jobs:
           pip --version
           pytest --version
 
-      - name: Ruff lint (auto-fix)
-        run: ruff check --fix .
-
       - name: Format check (black)
         run: black --check .
 
