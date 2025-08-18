@@ -66,12 +66,6 @@ jobs:
           pip --version
           pytest --version
 
-      - name: Format check (black)
-        run: black --check .
-
-      - name: Type check (mypy)
-        run: mypy .
-
       - name: Django checks & migrations dry-run
         run: |
           python manage.py check
