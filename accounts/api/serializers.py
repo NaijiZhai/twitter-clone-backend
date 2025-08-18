@@ -38,7 +38,7 @@ class UserSerializerForTweetResponse(UserSerializerWithProfile):
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(allow_blank = False, required=True)
-    password = serializers.CharField(allow_blank = False, required=True)
+    password = serializers.CharField(allow_blank = False, required=True,style={'input_type': 'password'})
     # email = serializers.EmailField(allow_blank = True, required=False)
     def validate(self, data):
         user = User.objects.filter(username=data['username']).first()
